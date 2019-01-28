@@ -74,6 +74,7 @@ class AbstractDatabaseBuilder {
     const table = {
       name: annotations.name || type.name,
       comment: type.description || null,
+      annotations,
       columns: [],
       columnMap: new Map(),
       indexes: [],
@@ -216,6 +217,7 @@ class AbstractDatabaseBuilder {
           joinTable = {
             name: tableName,
             comment: `Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
+            annotations: {},
             columns: [],
             columnMap: new Map(),
             indexes: [],
@@ -301,6 +303,7 @@ class AbstractDatabaseBuilder {
     return {
       name: columnName,
       comment: field.description || null,
+      annotations,
       type,
       args: args || [],
       foreign: foreign,

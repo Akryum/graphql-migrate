@@ -26,8 +26,8 @@ export interface ForeignKey {
 export interface TableColumn {
   name: string
   comment: string?;
+  annotations: any
   type: TableColumnType
   args: Array
   foreign: ForeignKey?;
-
 }

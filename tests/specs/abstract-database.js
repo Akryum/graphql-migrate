@@ -172,6 +172,7 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(1)
     const [User] = adb.tables
+    expect(User.annotations.name).toBe('people')
     expect(User.name).toBe('people')
   })
 
@@ -190,6 +191,8 @@ describe('create abstract database', () => {
     const [User] = adb.tables
     const [colId] = User.columns
     expect(colId.name).toBe('id')
+    expect(colId.annotations.type).toBe('string')
+    expect(colId.annotations.length).toBe(36)
     expect(colId.type).toBe('string')
     expect(colId.args).toEqual([36])
   })

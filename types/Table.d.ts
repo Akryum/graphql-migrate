@@ -3,6 +3,7 @@ import { TableColumn } from './TableColumn'
 export interface Table {
   name: string
   comment: string?;
+  annotations: any
   columns: TableColumn[]
   columnMap: Map<string, TableColumn>
   indexes: TableIndex[]
