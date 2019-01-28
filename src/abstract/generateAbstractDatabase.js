@@ -276,7 +276,7 @@ class AbstractDatabaseBuilder {
     // Index
     for (const type of INDEX_TYPES) {
       const annotation = annotations[type.annotation]
-      if (this.currentTable && (annotation || (isScalarType(fieldType) && fieldType.name === 'ID'))) {
+      if (this.currentTable && (annotation || (isScalarType(fieldType) && fieldType.name === 'ID' && annotation !== false))) {
         let indexName, indexType
         if (typeof annotation === 'string') {
           indexName = annotation

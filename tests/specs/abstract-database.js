@@ -72,6 +72,21 @@ describe('create abstract database', () => {
     expect(email.columns).toEqual(['email'])
   })
 
+  test('skip default index on ID type', async () => {
+    const schema = buildSchema(`
+      type User {
+        """
+        @db.index: false
+        """
+        id: ID!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.indexes.length).toBe(0)
+  })
+
   test('named index', async () => {
     const schema = buildSchema(`
       """
