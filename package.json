@@ -1,0 +1,35 @@
+{
+  "name": "graphql-migrate",
+  "version": "0.0.1",
+  "description": "Migrate Database from GraphQL Schema",
+  "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akryum/graphql-migrate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Akryum/graphql-migrate/issues"
+  },
+  "homepage": "https://github.com/Akryum/graphql-migrate#readme",
+  "main": "src/index.js",
+  "typings": "types/index.d.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "test:unit": "jest",
+    "test:types": "tsc"
+  },
+  "dependencies": {
+    "graphql": "^14.1.1",
+    "knex": "^0.16.3",
+    "safe-eval": "^0.4.1"
+  },
+  "devDependencies": {
+    "@types/graphql": "^14.0.5",
+    "eslint": "^5.12.1",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-vue-libs": "^3.0.0",
+    "graphql-tools": "^4.0.4",
+    "jest": "^24.0.0"
+  }
+}
