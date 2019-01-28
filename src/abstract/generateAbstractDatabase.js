@@ -22,6 +22,7 @@ const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
 const INDEX_TYPES = [
   { annotation: 'index', list: 'indexes', hasType: true },
+  { annotation: 'primary', list: 'primaries', defaultTypes: ['ID'], max: 1 },
   { annotation: 'unique', list: 'uniques' },
 ]
 
@@ -78,6 +79,7 @@ class AbstractDatabaseBuilder {
       columns: [],
       columnMap: new Map(),
       indexes: [],
+      primaries: [],
       uniques: [],
     }
 
@@ -221,6 +223,7 @@ class AbstractDatabaseBuilder {
             columns: [],
             columnMap: new Map(),
             indexes: [],
+            primaries: [],
             uniques: [],
           }
           this.database.tables.push(joinTable)
@@ -278,7 +281,9 @@ class AbstractDatabaseBuilder {
     // Index
     for (const type of INDEX_TYPES) {
       const annotation = annotations[type.annotation]
-      if (this.currentTable && (annotation || (isScalarType(fieldType) && fieldType.name === 'ID' && annotation !== false))) {
+      if (this.currentTable && (annotation ||
+        (type.defaultTypes && isScalarType(fieldType) && type.defaultTypes.includes(fieldType.name) && annotation !== false))
+      ) {
         let indexName, indexType
         if (typeof annotation === 'string') {
           indexName = annotation
@@ -293,6 +298,9 @@ class AbstractDatabaseBuilder {
             name: indexName,
             type: indexType,
             columns: [],
+          }
+          if (type.max && list.length === type.max) {
+            list.splice(0, 1)
           }
           list.push(index)
         }

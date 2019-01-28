@@ -47,16 +47,83 @@ describe('create abstract database', () => {
     expect(colName.comment).toBe('Display name.')
   })
 
-  test('simple index', async () => {
+  test('default primary index', async () => {
     const schema = buildSchema(`
-      """
-      A user.
-      """
       type User {
         """
-        This will also get an index
+        This will get a primary index
         """
         id: ID!
+        email: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.primaries.length).toBe(1)
+    const [id] = User.primaries
+    expect(id.columns).toEqual(['id'])
+  })
+
+  test('skip default primary index', async () => {
+    const schema = buildSchema(`
+      type User {
+        """
+        @db.primary: false
+        """
+        id: ID!
+        email: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.primaries.length).toBe(0)
+  })
+
+  test('change primary index', async () => {
+    const schema = buildSchema(`
+      type User {
+        id: ID!
+        """
+        @db.primary
+        """
+        email: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.primaries.length).toBe(1)
+    const [email] = User.primaries
+    expect(email.columns).toEqual(['email'])
+  })
+
+  test('simple index', async () => {
+    const schema = buildSchema(`
+      type User {
+        id: ID!
+        """
+        @db.index
+        """
+        email: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.indexes.length).toBe(1)
+    const [email] = User.indexes
+    expect(email.columns).toEqual(['email'])
+  })
+
+  test('multiple indexes', async () => {
+    const schema = buildSchema(`
+      type User {
+        """
+        @db.index
+        """
+        id: String!
         """
         @db.index
         """
@@ -72,26 +139,8 @@ describe('create abstract database', () => {
     expect(email.columns).toEqual(['email'])
   })
 
-  test('skip default index on ID type', async () => {
-    const schema = buildSchema(`
-      type User {
-        """
-        @db.index: false
-        """
-        id: ID!
-      }
-    `)
-    const adb = await generateAbstractDatabase(schema)
-    expect(adb.tables.length).toBe(1)
-    const [User] = adb.tables
-    expect(User.indexes.length).toBe(0)
-  })
-
   test('named index', async () => {
     const schema = buildSchema(`
-      """
-      A user.
-      """
       type User {
         """
         @db.index: 'myIndex'
@@ -114,9 +163,6 @@ describe('create abstract database', () => {
 
   test('object index', async () => {
     const schema = buildSchema(`
-      """
-      A user.
-      """
       type User {
         """
         @db.index: { name: 'myIndex', type: 'string' }
@@ -141,9 +187,6 @@ describe('create abstract database', () => {
   test('unique index', async () => {
     const schema = buildSchema(`
       type User {
-        """
-        This will also get a unique index
-        """
         id: ID!
         """
         @db.unique
@@ -154,9 +197,8 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(1)
     const [User] = adb.tables
-    expect(User.uniques.length).toBe(2)
-    const [id, email] = User.uniques
-    expect(id.columns).toEqual(['id'])
+    expect(User.uniques.length).toBe(1)
+    const [email] = User.uniques
     expect(email.columns).toEqual(['email'])
   })
 

@@ -7,6 +7,7 @@ export interface Table {
   columns: TableColumn[]
   columnMap: Map<string, TableColumn>
   indexes: TableIndex[]
+  primaries: TablePrimary[]
   uniques: TableUnique[]
 }
 
@@ -14,6 +15,11 @@ export interface TableIndex {
   columns: string[]
   name: string?;
   type: string?;
+}
+
+export interface TablePrimary {
+  columns: string[]
+  name: string?;
 }
 
 export interface TableUnique {
