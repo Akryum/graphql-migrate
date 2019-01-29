@@ -28,7 +28,8 @@ export interface TableColumn {
   comment: string?;
   annotations: any
   type: TableColumnType
-  notNull: boolean
   args: Array
+  notNull: boolean
   foreign: ForeignKey?;
+  defaultValue: any
 }

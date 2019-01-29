@@ -63,6 +63,21 @@ describe('create abstract database', () => {
     expect(colNickname.notNull).toBe(false)
   })
 
+  test('default value', async () => {
+    const schema = buildSchema(`
+      type User {
+        """
+        @db.default: true
+        """
+        someOption: Boolean
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    const [User] = adb.tables
+    const [colSomeOption] = User.columns
+    expect(colSomeOption.defaultValue).toBe(true)
+  })
+
   test('default primary index', async () => {
     const schema = buildSchema(`
       type User {
