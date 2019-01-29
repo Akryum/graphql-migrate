@@ -1,4 +1,4 @@
-const { graphql, buildSchema } = require('graphql')
+const { buildSchema } = require('graphql')
 const generateAbstractDatabase = require('../../src/abstract/generateAbstractDatabase')
 
 describe('create abstract database', () => {
