@@ -47,6 +47,22 @@ describe('create abstract database', () => {
     expect(colName.comment).toBe('Display name.')
   })
 
+  test('not null', async () => {
+    const schema = buildSchema(`
+      type User {
+        name: String!
+        nickname: String
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.columns.length).toBe(2)
+    const [colName, colNickname] = User.columns
+    expect(colName.notNull).toBe(true)
+    expect(colNickname.notNull).toBe(false)
+  })
+
   test('default primary index', async () => {
     const schema = buildSchema(`
       type User {

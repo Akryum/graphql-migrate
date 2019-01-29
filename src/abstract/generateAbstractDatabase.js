@@ -123,6 +123,7 @@ class AbstractDatabaseBuilder {
       fieldType = isNonNullType(field.type) ? field.type.ofType : field.type
     }
 
+    let notNull = isNonNullType(field.type)
     /** @type {string} */
     let columnName = annotations.name || field.name
     /** @type {TableColumnType} */
@@ -313,6 +314,7 @@ class AbstractDatabaseBuilder {
       comment: field.description || null,
       annotations,
       type,
+      notNull,
       args: args || [],
       foreign: foreign,
     }
