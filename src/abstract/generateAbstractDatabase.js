@@ -16,7 +16,7 @@ const {
   isNonNullType,
 } = require('graphql')
 const getColumnTypeFromScalar = require('./getColumnTypeFromScalar')
-const parseAnnotations = require('../annotations/parseAnnotations')
+const { parseAnnotations } = require('graphql-annotations')
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
@@ -69,7 +69,7 @@ class AbstractDatabaseBuilder {
    * @param {GraphQLObjectType} type
    */
   buildTable (type) {
-    const annotations = parseAnnotations(type.description || null)
+    const annotations = parseAnnotations('db', type.description || null)
 
     /** @type {Table} */
     const table = {
@@ -118,7 +118,7 @@ class AbstractDatabaseBuilder {
    * @return {TableColumn?}
    */
   getFieldDescriptor (field, fieldType = null) {
-    const annotations = parseAnnotations(field.description || null)
+    const annotations = parseAnnotations('db', field.description || null)
     if (!fieldType) {
       fieldType = isNonNullType(field.type) ? field.type.ofType : field.type
     }
@@ -201,7 +201,7 @@ class AbstractDatabaseBuilder {
         const foreignField = foreignType.getFields()[foreignKey]
         if (!foreignField) return null
         // @db.foreign
-        const foreignAnnotation = parseAnnotations(foreignField.description || null).foreign
+        const foreignAnnotation = parseAnnotations('db', foreignField.description || null).foreign
         if (foreignAnnotation && foreignAnnotation !== field.name) return null
         // Type
         const foreignFieldType = isNonNullType(foreignField.type) ? foreignField.type.ofType : foreignField.type

@@ -8,7 +8,7 @@
  * @prop {Array} args
  */
 
-const parseAnnotations = require('../annotations/parseAnnotations')
+const { parseAnnotations } = require('graphql-annotations')
 
 /**
  * @param {GraphQLField} field
@@ -18,7 +18,7 @@ const parseAnnotations = require('../annotations/parseAnnotations')
  */
 module.exports = function (field, scalarType = null, annotations = null) {
   if (!annotations) {
-    annotations = parseAnnotations(field.description || null)
+    annotations = parseAnnotations('db', field.description || null)
   }
 
   // text
