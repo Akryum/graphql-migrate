@@ -22,7 +22,7 @@ const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
 const INDEX_TYPES = [
   { annotation: 'index', list: 'indexes', hasType: true },
-  { annotation: 'primary', list: 'primaries', defaultTypes: ['ID'], max: 1 },
+  { annotation: 'primary', list: 'primaries', default: (name, type) => name === 'id' && type === 'ID', max: 1 },
   { annotation: 'unique', list: 'uniques' },
 ]
 
@@ -283,7 +283,7 @@ class AbstractDatabaseBuilder {
     for (const type of INDEX_TYPES) {
       const annotation = annotations[type.annotation]
       if (this.currentTable && (annotation ||
-        (type.defaultTypes && isScalarType(fieldType) && type.defaultTypes.includes(fieldType.name) && annotation !== false))
+        (type.default && isScalarType(fieldType) && type.default(field.name, fieldType.name) && annotation !== false))
       ) {
         let indexName, indexType
         if (typeof annotation === 'string') {

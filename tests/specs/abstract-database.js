@@ -96,6 +96,24 @@ describe('create abstract database', () => {
     expect(id.columns).toEqual(['id'])
   })
 
+  test('no default primary index', async () => {
+    const schema = buildSchema(`
+      type User {
+        """
+        This will NOT get a primary index
+        """
+        foo: ID!
+        """
+        Neither will this
+        """
+        id: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    const [User] = adb.tables
+    expect(User.primaries.length).toBe(0)
+  })
+
   test('skip default primary index', async () => {
     const schema = buildSchema(`
       type User {
