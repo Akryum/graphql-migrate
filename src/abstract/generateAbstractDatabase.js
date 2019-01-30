@@ -69,6 +69,7 @@ class AbstractDatabaseBuilder {
    * @param {GraphQLObjectType} type
    */
   buildTable (type) {
+    /** @type {any} */
     const annotations = parseAnnotations('db', type.description || null)
 
     /** @type {Table} */
@@ -118,6 +119,7 @@ class AbstractDatabaseBuilder {
    * @return {TableColumn?}
    */
   getFieldDescriptor (field, fieldType = null) {
+    /** @type {any} */
     const annotations = parseAnnotations('db', field.description || null)
     if (!fieldType) {
       fieldType = isNonNullType(field.type) ? field.type.ofType : field.type
@@ -201,7 +203,9 @@ class AbstractDatabaseBuilder {
         const foreignField = foreignType.getFields()[foreignKey]
         if (!foreignField) return null
         // @db.foreign
-        const foreignAnnotation = parseAnnotations('db', foreignField.description || null).foreign
+        /** @type {any} */
+        const foreignAnnotations = parseAnnotations('db', foreignField.description || null)
+        const foreignAnnotation = foreignAnnotations.foreign
         if (foreignAnnotation && foreignAnnotation !== field.name) return null
         // Type
         const foreignFieldType = isNonNullType(foreignField.type) ? foreignField.type.ofType : foreignField.type

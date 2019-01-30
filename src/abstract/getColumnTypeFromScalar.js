@@ -13,7 +13,7 @@ const { parseAnnotations } = require('graphql-annotations')
 /**
  * @param {GraphQLField} field
  * @param {GraphQLScalarType?} scalarType
- * @param {Object.<string, any>?} annotations
+ * @param {any} annotations
  * @returns {TableColumnTypeDescriptor?}
  */
 module.exports = function (field, scalarType = null, annotations = null) {
