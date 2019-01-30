@@ -1,7 +1,7 @@
 {
   "name": "graphql-migrate",
   "version": "0.0.1",
-  "description": "Migrate Database from GraphQL Schema",
+  "description": "Create & migrate Databases from GraphQL Schema",
   "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
   "license": "MIT",
   "repository": {
