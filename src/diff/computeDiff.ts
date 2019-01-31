@@ -1,45 +1,32 @@
-/** @typedef {import('../..').AbstractDatabase} AbstractDatabase */
-/** @typedef {import('../..').Table} Table */
-/** @typedef {import('../..').TableColumn} TableColumn */
-/** @typedef {import('../..').TablePrimary} TablePrimary */
-/** @typedef {import('../..').TableIndex} TableIndex */
-/** @typedef {import('../..').TableUnique} TableUnique */
-/** @typedef {import('../..').Operation} Operation */
-/** @typedef {import('../..').OperationType} OperationType */
+import { AbstractDatabase } from '../abstract/AbstractDatabase'
+import { Table, TablePrimary, TableIndex, TableUnique } from '../abstract/Table'
+import { TableColumn } from '../abstract/TableColumn'
+import * as Operations from './Operation'
 
-const shallowEqualArrays = require('shallow-equal/arrays')
-const shallowEqualObjects = require('shallow-equal/objects')
+// @ts-ignore
+import shallowEqualArrays from 'shallow-equal/arrays'
+// @ts-ignore
+import shallowEqualObjects from 'shallow-equal/objects'
 
-/**
- * @param {AbstractDatabase} from
- * @param {AbstractDatabase} to
- * @returns {Promise.<Operation[]>}
- */
-module.exports = async function (from, to) {
+module.exports = async function(from: AbstractDatabase, to: AbstractDatabase): Promise<Operations.Operation []> {
   const differ = new Differ(from, to)
   return differ.diff()
 }
 
 class Differ {
-  /**
-   * @param {AbstractDatabase} from
-   * @param {AbstractDatabase} to
-   */
-  constructor (from, to) {
+  private from: AbstractDatabase
+  private to: AbstractDatabase
+  private operations: Operations.Operation[] = []
+
+  constructor(from: AbstractDatabase, to: AbstractDatabase) {
     this.from = from
     this.to = to
-    /** @type {Operation[]} */
-    this.operations = []
   }
 
-  /**
-   * @returns {Operation[]}
-   */
-  diff () {
+  public diff(): Operations.Operation[] {
     this.operations.length = 0
 
-    /** @type {{ fromTable: Table, toTable: Table }[]} */
-    const sameTableQueue = []
+    const sameTableQueue: Array<{ fromTable: Table, toTable: Table }> = []
     const addTableQueue = this.to.tables.slice()
     for (const fromTable of this.from.tables) {
       let removed = true
@@ -84,8 +71,7 @@ class Differ {
         this.setTableComment(toTable)
       }
 
-      /** @type {{ fromCol:TableColumn, toCol: TableColumn }[]} */
-      const sameColumnQueue = []
+      const sameColumnQueue: Array<{ fromCol: TableColumn, toCol: TableColumn }> = []
       const addColumnQueue = toTable.columns.slice()
       for (const fromCol of fromTable.columns) {
         let removed = true
@@ -166,32 +152,25 @@ class Differ {
       this.compareIndex(
         fromTable.indexes,
         toTable.indexes,
-        /** @param {TableIndex} index */
-        index => this.createIndex(toTable, index),
-        /** @param {TableIndex} index */
-        index => this.dropIndex(fromTable, index)
+        // @ts-ignore
+        (index: TableIndex) => this.createIndex(toTable, index),
+        (index: TableIndex) => this.dropIndex(fromTable, index),
       )
 
       // Unique contraint
       this.compareIndex(
         fromTable.uniques,
         toTable.uniques,
-        /** @param {TableUnique} index */
-        index => this.createUnique(toTable, index),
-        /** @param {TableUnique} index */
-        index => this.dropUnique(fromTable, index)
+        (index: TableUnique) => this.createUnique(toTable, index),
+        (index: TableUnique) => this.dropUnique(fromTable, index),
       )
     }
 
     return this.operations
   }
 
-  /**
-   * @param {Table} table
-   */
-  createTable (table) {
-    /** @type {import('../../types/Operation').TableCreateOperation} */
-    const op = {
+  private createTable(table: Table) {
+    const op: Operations.TableCreateOperation = {
       type: 'table.create',
       table: table.name,
     }
@@ -224,13 +203,8 @@ class Differ {
     }
   }
 
-  /**
-   * @param {Table} fromTable
-   * @param {Table} toTable
-   */
-  renameTable (fromTable, toTable) {
-    /** @type {import('../../types/Operation').TableRenameOperation} */
-    const op = {
+  private renameTable(fromTable: Table, toTable: Table) {
+    const op: Operations.TableRenameOperation = {
       type: 'table.rename',
       fromName: fromTable.name,
       toName: toTable.name,
@@ -238,24 +212,16 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   */
-  dropTable (table) {
-    /** @type {import('../../types/Operation').TableDropOperation} */
-    const op = {
+  private dropTable(table: Table) {
+    const op: Operations.TableDropOperation = {
       type: 'table.drop',
       table: table.name,
     }
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   */
-  setTableComment (table) {
-    /** @type {import('../../types/Operation').TableCommentSetOperation} */
-    const op = {
+  private setTableComment(table: Table) {
+    const op: Operations.TableCommentSetOperation = {
       type: 'table.comment.set',
       table: table.name,
       comment: table.comment,
@@ -263,13 +229,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TablePrimary | null} index
-   */
-  setPrimary (table, index) {
-    /** @type {import('../../types/Operation').TablePrimarySetOperation} */
-    const op = {
+  private setPrimary(table: Table, index: TablePrimary | null) {
+    const op: Operations.TablePrimarySetOperation = {
       type: 'table.primary.set',
       table: table.name,
       columns: index ? index.columns : null,
@@ -278,13 +239,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableIndex} index
-   */
-  createIndex (table, index) {
-    /** @type {import('../../types/Operation').TableIndexCreateOperation} */
-    const op = {
+  private createIndex(table: Table, index: TableIndex) {
+    const op: Operations.TableIndexCreateOperation = {
       type: 'table.index.create',
       table: table.name,
       columns: index.columns,
@@ -294,13 +250,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableIndex} index
-   */
-  dropIndex (table, index) {
-    /** @type {import('../../types/Operation').TableIndexDropOperation} */
-    const op = {
+  private dropIndex(table: Table, index: TableIndex) {
+    const op: Operations.TableIndexDropOperation = {
       type: 'table.index.drop',
       table: table.name,
       columns: index.columns,
@@ -309,13 +260,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableUnique} index
-   */
-  createUnique (table, index) {
-    /** @type {import('../../types/Operation').TableUniqueCreateOperation} */
-    const op = {
+  private createUnique(table: Table, index: TableUnique) {
+    const op: Operations.TableUniqueCreateOperation = {
       type: 'table.unique.create',
       table: table.name,
       columns: index.columns,
@@ -328,9 +274,8 @@ class Differ {
    * @param {Table} table
    * @param {TableUnique} index
    */
-  dropUnique (table, index) {
-    /** @type {import('../../types/Operation').TableUniqueDropOperation} */
-    const op = {
+  private dropUnique(table: Table, index: TableUnique) {
+    const op: Operations.TableUniqueDropOperation = {
       type: 'table.unique.drop',
       table: table.name,
       columns: index.columns,
@@ -339,14 +284,9 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  createForeignKey (table, column) {
+  private createForeignKey(table: Table, column: TableColumn) {
     if (column.foreign) {
-      /** @type {import('../../types/Operation').TableForeignCreateOperation} */
-      const op = {
+      const op: Operations.TableForeignCreateOperation = {
         type: 'table.foreign.create',
         table: table.name,
         column: column.name,
@@ -356,14 +296,9 @@ class Differ {
     }
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  dropForeignKey (table, column) {
+  private dropForeignKey(table: Table, column: TableColumn) {
     if (column.foreign) {
-      /** @type {import('../../types/Operation').TableForeignDropOperation} */
-      const op = {
+      const op: Operations.TableForeignDropOperation = {
         type: 'table.foreign.drop',
         table: table.name,
         column: column.name,
@@ -372,13 +307,8 @@ class Differ {
     }
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  createColumn (table, column) {
-    /** @type {import('../../types/Operation').ColumnCreateOperation} */
-    const op = {
+  private createColumn(table: Table, column: TableColumn) {
+    const op: Operations.ColumnCreateOperation = {
       type: 'column.create',
       table: table.name,
       column: column.name,
@@ -406,14 +336,8 @@ class Differ {
     this.createForeignKey(table, column)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} fromCol
-   * @param {TableColumn} toCol
-   */
-  renameColumn (table, fromCol, toCol) {
-    /** @type {import('../../types/Operation').ColumnRenameOperation} */
-    const op = {
+  private renameColumn(table: Table, fromCol: TableColumn, toCol: TableColumn) {
+    const op: Operations.ColumnRenameOperation = {
       type: 'column.rename',
       table: table.name,
       fromName: fromCol.name,
@@ -422,13 +346,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  setColumnType (table, column) {
-    /** @type {import('../../types/Operation').ColumnTypeSetOperation} */
-    const op = {
+  private setColumnType(table: Table, column: TableColumn) {
+    const op: Operations.ColumnTypeSetOperation = {
       type: 'column.type.set',
       table: table.name,
       column: column.name,
@@ -438,13 +357,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  setColumnComment (table, column) {
-    /** @type {import('../../types/Operation').ColumnCommentSetOperation} */
-    const op = {
+  private setColumnComment(table: Table, column: TableColumn) {
+    const op: Operations.ColumnCommentSetOperation = {
       type: 'column.comment.set',
       table: table.name,
       column: column.name,
@@ -453,13 +367,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  setColumnNullable (table, column) {
-    /** @type {import('../../types/Operation').ColumnNullableSetOperation} */
-    const op = {
+  private setColumnNullable(table: Table, column: TableColumn) {
+    const op: Operations.ColumnNullableSetOperation = {
       type: 'column.nullable.set',
       table: table.name,
       column: column.name,
@@ -468,13 +377,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  setColumnDefaultValue (table, column) {
-    /** @type {import('../../types/Operation').ColumnDefaultSetOperation} */
-    const op = {
+  private setColumnDefaultValue(table: Table, column: TableColumn) {
+    const op: Operations.ColumnDefaultSetOperation = {
       type: 'column.default.set',
       table: table.name,
       column: column.name,
@@ -483,13 +387,8 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {Table} table
-   * @param {TableColumn} column
-   */
-  dropColumn (table, column) {
-    /** @type {import('../../types/Operation').ColumnDropOperation} */
-    const op = {
+  private dropColumn(table: Table, column: TableColumn) {
+    const op: Operations.ColumnDropOperation = {
       type: 'column.drop',
       table: table.name,
       column: column.name,
@@ -497,13 +396,12 @@ class Differ {
     this.operations.push(op)
   }
 
-  /**
-   * @param {(TableIndex | TableUnique)[]} fromList
-   * @param {(TableIndex | TableUnique)[]} toList
-   * @param {(index: TableIndex | TableUnique) => void} create
-   * @param {(index: TableIndex | TableUnique) => void} drop
-   */
-  compareIndex (fromList, toList, create, drop) {
+  private compareIndex(
+    fromList: Array<TableIndex | TableUnique>,
+    toList: Array<TableIndex | TableUnique>,
+    create: (index: TableIndex | TableUnique) => void,
+    drop: (index: TableIndex | TableUnique) => void,
+  ) {
     const addIndexQueue = toList.slice()
     for (const fromIndex of fromList) {
       let removed = true

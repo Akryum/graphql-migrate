@@ -1,59 +1,52 @@
-/** @typedef {import('graphql').GraphQLSchema} GraphQLSchema */
-/** @typedef {import('graphql').GraphQLObjectType} GraphQLObjectType */
-/** @typedef {import('graphql').GraphQLField} GraphQLField */
-/** @typedef {import('graphql').GraphQLOutputType} GraphQLOutputType */
-/** @typedef {import('../..').AbstractDatabase} AbstractDatabase */
-/** @typedef {import('../..').Table} Table */
-/** @typedef {import('../..').TableColumn} TableColumn */
-/** @typedef {import('../..').TableColumnType} TableColumnType */
-/** @typedef {import('../..').ForeignKey} ForeignKey */
-
-const {
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLField,
+  GraphQLOutputType,
   isObjectType,
   isScalarType,
   isEnumType,
   isListType,
   isNonNullType,
-} = require('graphql')
-const getColumnTypeFromScalar = require('./getColumnTypeFromScalar')
-const { parseAnnotations } = require('graphql-annotations')
+} from 'graphql'
+import { TypeMap } from 'graphql/type/schema'
+import { AbstractDatabase } from './AbstractDatabase'
+import { Table, TableUnique } from './Table'
+import { TableColumn, TableColumnType, ForeignKey } from './TableColumn'
+import { parseAnnotations } from 'graphql-annotations'
+import getColumnTypeFromScalar from './getColumnTypeFromScalar'
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
 const INDEX_TYPES = [
   { annotation: 'index', list: 'indexes', hasType: true },
-  { annotation: 'primary', list: 'primaries', default: (name, type) => name === 'id' && type === 'ID', max: 1 },
+  { annotation: 'primary', list: 'primaries', default: (name: string, type: string) => name === 'id' && type === 'ID', max: 1 },
   { annotation: 'unique', list: 'uniques' },
 ]
 
-/**
- * @param {GraphQLSchema} schema
- * @returns {Promise.<AbstractDatabase>}
- */
-module.exports = async function (schema) {
+export default async function(schema: GraphQLSchema): Promise<AbstractDatabase> {
   const builder = new AbstractDatabaseBuilder(schema)
   return builder.build()
 }
 
 class AbstractDatabaseBuilder {
-  /**
-   * @param {GraphQLSchema} schema
-   */
-  constructor (schema) {
+  private schema: GraphQLSchema
+  private typeMap: TypeMap
+  private database: AbstractDatabase
+  private currentTable: Table | null = null
+  private currentType: string | null = null
+
+  constructor(schema: GraphQLSchema) {
     this.schema = schema
     this.typeMap = this.schema.getTypeMap()
 
-    /** @type {AbstractDatabase} */
     this.database = {
       tables: [],
       tableMap: new Map(),
     }
   }
 
-  /**
-   * @returns {AbstractDatabase}
-   **/
-  build () {
+  public build(): AbstractDatabase {
     for (const key in this.typeMap) {
       const type = this.typeMap[key]
       // Tables
@@ -65,20 +58,15 @@ class AbstractDatabaseBuilder {
     return this.database
   }
 
-  /**
-   * @param {GraphQLObjectType} type
-   */
-  buildTable (type) {
-    /** @type {any} */
-    const annotations = parseAnnotations('db', type.description || null)
+  private buildTable(type: GraphQLObjectType) {
+    const annotations: any = parseAnnotations('db', type.description || null)
 
-    /** @type {Table} */
-    const table = {
+    const table: Table = {
       name: annotations.name || type.name,
       comment: type.description || null,
       annotations,
       columns: [],
-      columnMap: new Map(),
+      columnMap: new Map<string, TableColumn>(),
       indexes: [],
       primaries: [],
       uniques: [],
@@ -101,39 +89,25 @@ class AbstractDatabaseBuilder {
     return table
   }
 
-  /**
-   * @param {Table} table
-   * @param {GraphQLField} field
-   */
-  buildColumn (table, field) {
+  private buildColumn(table: Table, field: GraphQLField<any, any>) {
     const descriptor = this.getFieldDescriptor(field)
-    if (!descriptor) return
+    if (!descriptor) { return }
     table.columns.push(descriptor)
     table.columnMap.set(field.name, descriptor)
     return descriptor
   }
 
-  /**
-   * @param {GraphQLField} field
-   * @param {GraphQLOutputType?} fieldType
-   * @return {TableColumn?}
-   */
-  getFieldDescriptor (field, fieldType = null) {
-    /** @type {any} */
-    const annotations = parseAnnotations('db', field.description || null)
+  private getFieldDescriptor(field: GraphQLField<any, any>, fieldType: GraphQLOutputType | null = null): TableColumn | null {
+    const annotations: any = parseAnnotations('db', field.description || null)
     if (!fieldType) {
       fieldType = isNonNullType(field.type) ? field.type.ofType : field.type
     }
 
     const notNull = isNonNullType(field.type)
-    /** @type {string} */
-    let columnName = annotations.name || field.name
-    /** @type {string} */
-    let type
-    /** @type {any[]} */
-    let args
-    /** @type {ForeignKey?} */
-    let foreign = null
+    let columnName: string = annotations.name || field.name
+    let type: string
+    let args: any[]
+    let foreign: ForeignKey | null = null
 
     // Scalar
     if (isScalarType(fieldType) || annotations.type) {
@@ -148,7 +122,7 @@ class AbstractDatabaseBuilder {
     // Enum
     } else if (isEnumType(fieldType)) {
       type = 'enum'
-      args = [fieldType.getValues().map(v => v.name), { enumName: fieldType.name }]
+      args = [fieldType.getValues().map((v) => v.name), { enumName: fieldType.name }]
 
     // Object
     } else if (isObjectType(fieldType)) {
@@ -162,7 +136,7 @@ class AbstractDatabaseBuilder {
         console.warn(`Foreign type ${fieldType.name} is not Object type on field ${field.name}.`)
         return null
       }
-      const foreignKey = annotations.foreign || 'id'
+      const foreignKey: string = annotations.foreign || 'id'
       const foreignField = foreignType.getFields()[foreignKey]
       if (!foreignField) {
         console.warn(`Foreign field ${foreignKey} on type ${fieldType.name} not found on field ${field.name}.`)
@@ -201,24 +175,21 @@ class AbstractDatabaseBuilder {
         // Foreign Field
         const foreignKey = onSameType ? field.name : annotations.manyToMany || this.currentTable.name.toLowerCase()
         const foreignField = foreignType.getFields()[foreignKey]
-        if (!foreignField) return null
+        if (!foreignField) { return null }
         // @db.foreign
-        /** @type {any} */
-        const foreignAnnotations = parseAnnotations('db', foreignField.description || null)
+        const foreignAnnotations: any = parseAnnotations('db', foreignField.description || null)
         const foreignAnnotation = foreignAnnotations.foreign
-        if (foreignAnnotation && foreignAnnotation !== field.name) return null
+        if (foreignAnnotation && foreignAnnotation !== field.name) { return null }
         // Type
         const foreignFieldType = isNonNullType(foreignField.type) ? foreignField.type.ofType : foreignField.type
-        if (!isListType(foreignFieldType)) return null
+        if (!isListType(foreignFieldType)) { return null }
 
         // Create join table for many-to-many
         const defaultName = [
           `${this.currentType}_${field.name}`,
           `${foreignType.name}_${foreignField.name}`,
         ].sort().join('_JOIN_')
-        /** @type {string} */
-        const tableName = annotations.table || defaultName
-        /** @type {Table?} */
+        const tableName: string = annotations.table || defaultName
         let joinTable = this.database.tableMap.get(tableName) || null
         if (!joinTable) {
           joinTable = {
@@ -243,7 +214,7 @@ class AbstractDatabaseBuilder {
             return null
           }
           const descriptor = this.getFieldDescriptor(foreignField, ofType)
-          if (!descriptor) return null
+          if (!descriptor) { return null }
           descriptors = [
             descriptor,
             {
@@ -252,7 +223,7 @@ class AbstractDatabaseBuilder {
           ]
         } else {
           const descriptor = this.getFieldDescriptor(foreignField, ofType)
-          if (!descriptor) return null
+          if (!descriptor) { return null }
           descriptors = [descriptor]
         }
         for (const descriptor of descriptors) {
@@ -264,7 +235,7 @@ class AbstractDatabaseBuilder {
         }
         // Index
         joinTable.indexes.push({
-          columns: descriptors.map(d => d.name),
+          columns: descriptors.map((d) => d.name),
           name: null,
           type: null,
         })
@@ -289,15 +260,17 @@ class AbstractDatabaseBuilder {
       if (this.currentTable && (annotation ||
         (type.default && isScalarType(fieldType) && type.default(field.name, fieldType.name) && annotation !== false))
       ) {
-        let indexName, indexType
+        let indexName: string | null = null
+        let indexType: string | null = null
         if (typeof annotation === 'string') {
           indexName = annotation
         } else if (type.hasType && typeof annotation === 'object') {
           indexName = annotation.name
           indexType = annotation.type
         }
-        const list = this.currentTable[type.list]
-        let index = indexName ? list.find(i => i.name === indexName) : null
+        // @ts-ignore
+        const list: any[] = this.currentTable[type.list]
+        let index = indexName ? list.find((i) => i.name === indexName) : null
         if (!index) {
           index = {
             name: indexName,
@@ -320,7 +293,7 @@ class AbstractDatabaseBuilder {
       type,
       args: args || [],
       notNull,
-      foreign: foreign,
+      foreign,
       defaultValue: annotations.default || null,
     }
   }
@@ -328,7 +301,7 @@ class AbstractDatabaseBuilder {
   /**
    * Put the correct values for `foreign.tableName` and `foreign.columnName` in the columns.
    */
-  fillForeignKeys () {
+  private fillForeignKeys() {
     for (const table of this.database.tables) {
       for (const column of table.columns) {
         if (column.foreign) {

@@ -19,17 +19,17 @@ export type TableColumnType =
 export interface ForeignKey {
   type: string
   field: string
-  tableName: string?;
-  columnName: string?;
+  tableName: string | null
+  columnName: string | null
 }
 
 export interface TableColumn {
   name: string
-  comment: string?;
+  comment: string | null
   annotations: any
   type: string
-  args: Array
+  args: any[]
   notNull: boolean
-  foreign: ForeignKey?;
+  foreign: ForeignKey | null
   defaultValue: any
 }

@@ -1,4 +1,4 @@
-const ALIAS = {
+const ALIAS: any = {
   'int': { type: 'integer', args: [] },
   'int4': { type: 'integer', args: [] },
   'smallint': { type: 'integer', args: [] },
@@ -18,16 +18,11 @@ const ALIAS = {
   'bytea': { type: 'binary', args: [] },
 }
 
-/**
- * @param {string} dataType
- * @param {any} maxLength
- * @returns {{ type: string, args: any[] }}
- */
-module.exports = function (dataType, maxLength) {
+export default function(dataType: string, maxLength: any): { type: string, args: any[] } {
   let alias = ALIAS[dataType.toLowerCase()]
   if (!alias) {
     alias = { type: dataType, args: [] }
   }
-  if (alias.type === 'string' && maxLength) alias.args = [maxLength]
+  if (alias.type === 'string' && maxLength) { alias.args = [maxLength] }
   return alias
 }

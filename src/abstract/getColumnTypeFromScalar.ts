@@ -1,22 +1,14 @@
-/** @typedef {import('graphql').GraphQLField} GraphQLField */
-/** @typedef {import('graphql').GraphQLScalarType} GraphQLScalarType */
-/** @typedef {import('../..').TableColumnType} TableColumnType */
+import { GraphQLField, GraphQLScalarType } from 'graphql'
+import { TableColumnType } from './TableColumn'
 
-/**
- * @typedef TableColumnTypeDescriptor
- * @prop {TableColumnType} type
- * @prop {Array} args
- */
+interface TableColumnTypeDescriptor {
+  type: TableColumnType
+  args: any[]
+}
 
-const { parseAnnotations } = require('graphql-annotations')
+import { parseAnnotations } from 'graphql-annotations'
 
-/**
- * @param {GraphQLField} field
- * @param {GraphQLScalarType?} scalarType
- * @param {any} annotations
- * @returns {TableColumnTypeDescriptor?}
- */
-module.exports = function (field, scalarType = null, annotations = null) {
+export default function(field: GraphQLField<any, any>, scalarType: GraphQLScalarType | null = null, annotations: any = null): TableColumnTypeDescriptor | null {
   if (!annotations) {
     annotations = parseAnnotations('db', field.description || null)
   }

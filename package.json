@@ -38,6 +38,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Akryum/graphql-migrate.git"
-  },
-  "typings": "types/index.d.ts"
+  }
 }

@@ -8,9 +8,6 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "types": [
-      "webpack-env"
-    ],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

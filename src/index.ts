@@ -1,2 +1,2 @@
-console.log(`Welcome to your new nodepack-powered app!`)
-console.log(`Getting started: https://github.com/moonreach/nodepack`)
+export { default as generateAbstractDatabase } from './abstract/generateAbstractDatabase'
+export { default as computeDiff } from './diff/computeDiff'
