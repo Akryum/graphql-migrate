@@ -128,7 +128,7 @@ class AbstractDatabaseBuilder {
     const notNull = isNonNullType(field.type)
     /** @type {string} */
     let columnName = annotations.name || field.name
-    /** @type {TableColumnType} */
+    /** @type {string} */
     let type
     /** @type {any[]} */
     let args
@@ -148,7 +148,7 @@ class AbstractDatabaseBuilder {
     // Enum
     } else if (isEnumType(fieldType)) {
       type = 'enum'
-      args = [fieldType.getValues().map(v => v.name)]
+      args = [fieldType.getValues().map(v => v.name), { enumName: fieldType.name }]
 
     // Object
     } else if (isObjectType(fieldType)) {

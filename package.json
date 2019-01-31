@@ -17,7 +17,9 @@
   "scripts": {
     "lint": "eslint .",
     "test:unit": "jest",
-    "test:types": "tsc"
+    "test:types": "tsc",
+    "dev": "nodepack-service dev",
+    "build": "nodepack-service build"
   },
   "dependencies": {
     "graphql": "^14.1.1",
@@ -26,12 +28,15 @@
     "shallow-equal": "^1.0.0"
   },
   "devDependencies": {
+    "@nodepack/service": "^0.0.3",
+    "@nodepack/plugin-typescript": "^0.0.2",
     "@types/graphql": "^14.0.5",
     "eslint": "^5.12.1",
     "eslint-plugin-node": "^8.0.1",
     "eslint-plugin-vue-libs": "^3.0.0",
     "graphql-tools": "^4.0.4",
     "jest": "^24.0.0",
+    "pg": "^7.8.0",
     "typescript": "^3.2.2"
   }
 }
