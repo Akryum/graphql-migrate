@@ -3,23 +3,13 @@
   "version": "0.0.1",
   "description": "Create & migrate Databases from GraphQL Schema",
   "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Akryum/graphql-migrate.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Akryum/graphql-migrate/issues"
-  },
-  "homepage": "https://github.com/Akryum/graphql-migrate#readme",
-  "main": "src/index.js",
-  "typings": "types/index.d.ts",
   "scripts": {
-    "lint": "eslint .",
-    "test:unit": "jest",
-    "test:types": "tsc",
     "dev": "nodepack-service dev",
-    "build": "nodepack-service build"
+    "build": "nodepack-service build",
+    "lint": "nodepack-service lint",
+    "start": "node ./dist/app.js",
+    "test:types": "tsc",
+    "test:unit": "jest"
   },
   "dependencies": {
     "graphql": "^14.1.1",
@@ -28,8 +18,8 @@
     "shallow-equal": "^1.0.0"
   },
   "devDependencies": {
-    "@nodepack/service": "^0.0.3",
     "@nodepack/plugin-typescript": "^0.0.2",
+    "@nodepack/service": "^0.0.3",
     "@types/graphql": "^14.0.5",
     "eslint": "^5.12.1",
     "eslint-plugin-node": "^8.0.1",
@@ -38,5 +28,16 @@
     "jest": "^24.0.0",
     "pg": "^7.8.0",
     "typescript": "^3.2.2"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Akryum/graphql-migrate/issues"
+  },
+  "homepage": "https://github.com/Akryum/graphql-migrate#readme",
+  "license": "MIT",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akryum/graphql-migrate.git"
+  },
+  "typings": "types/index.d.ts"
 }
