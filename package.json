@@ -21,12 +21,14 @@
     "@nodepack/plugin-typescript": "^0.0.2",
     "@nodepack/service": "^0.0.3",
     "@types/graphql": "^14.0.5",
+    "@types/jest": "^23.3.13",
     "eslint": "^5.12.1",
     "eslint-plugin-node": "^8.0.1",
     "eslint-plugin-vue-libs": "^3.0.0",
     "graphql-tools": "^4.0.4",
     "jest": "^24.0.0",
     "pg": "^7.8.0",
+    "ts-jest": "^23.10.5",
     "typescript": "^3.2.2"
   },
   "bugs": {

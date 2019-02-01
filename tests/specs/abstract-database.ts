@@ -1,5 +1,5 @@
-const { buildSchema } = require('graphql')
-const generateAbstractDatabase = require('../../src/abstract/generateAbstractDatabase')
+import { buildSchema } from 'graphql'
+import { generateAbstractDatabase } from '../../src'
 
 describe('create abstract database', () => {
   test('skip root types', async () => {
@@ -311,8 +311,8 @@ describe('create abstract database', () => {
     expect(colId.name).toBe('id')
     expect(colUserForeign.name).toBe('user_foreign')
     expect(colUserForeign.type).toBe('uuid')
-    expect(colUserForeign.foreign.tableName).toBe('User')
-    expect(colUserForeign.foreign.columnName).toBe('id')
+    expect(colUserForeign.foreign && colUserForeign.foreign.tableName).toBe('User')
+    expect(colUserForeign.foreign && colUserForeign.foreign.columnName).toBe('id')
   })
 
   test('many to many', async () => {
@@ -340,12 +340,12 @@ describe('create abstract database', () => {
     const [colMessageUsers, colUserMessages] = Join.columns
     expect(colMessageUsers.name).toBe('users_foreign')
     expect(colMessageUsers.type).toBe('uuid')
-    expect(colMessageUsers.foreign.tableName).toBe('Message')
-    expect(colMessageUsers.foreign.columnName).toBe('id')
+    expect(colMessageUsers.foreign && colMessageUsers.foreign.tableName).toBe('Message')
+    expect(colMessageUsers.foreign && colMessageUsers.foreign.columnName).toBe('id')
     expect(colUserMessages.name).toBe('messages_foreign')
     expect(colUserMessages.type).toBe('uuid')
-    expect(colUserMessages.foreign.tableName).toBe('User')
-    expect(colUserMessages.foreign.columnName).toBe('id')
+    expect(colUserMessages.foreign && colUserMessages.foreign.tableName).toBe('User')
+    expect(colUserMessages.foreign && colUserMessages.foreign.columnName).toBe('id')
   })
 
   test('many to many on self', async () => {
@@ -364,12 +364,12 @@ describe('create abstract database', () => {
     const [col1, col2] = UserContacts.columns
     expect(col1.name).toBe('id_foreign')
     expect(col1.type).toBe('uuid')
-    expect(col1.foreign.tableName).toBe('User')
-    expect(col1.foreign.columnName).toBe('id')
+    expect(col1.foreign && col1.foreign.tableName).toBe('User')
+    expect(col1.foreign && col1.foreign.columnName).toBe('id')
     expect(col2.name).toBe('id_foreign_other')
     expect(col2.type).toBe('uuid')
-    expect(col2.foreign.tableName).toBe('User')
-    expect(col2.foreign.columnName).toBe('id')
+    expect(col2.foreign && col2.foreign.tableName).toBe('User')
+    expect(col2.foreign && col2.foreign.columnName).toBe('id')
   })
 
   test('simple list', async () => {

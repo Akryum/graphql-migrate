@@ -8,7 +8,7 @@ import shallowEqualArrays from 'shallow-equal/arrays'
 // @ts-ignore
 import shallowEqualObjects from 'shallow-equal/objects'
 
-module.exports = async function(from: AbstractDatabase, to: AbstractDatabase): Promise<Operations.Operation []> {
+export default async function(from: AbstractDatabase, to: AbstractDatabase): Promise<Operations.Operation []> {
   const differ = new Differ(from, to)
   return differ.diff()
 }
