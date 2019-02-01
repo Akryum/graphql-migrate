@@ -1,52 +1,49 @@
-/** @typedef {import('knex').Config} Config */
-/** @typedef {import('../..').AbstractDatabase} AbstractDatabase */
-/** @typedef {import('../..').Table} Table */
-/** @typedef {import('../..').TableColumn} TableColumn */
-/** @typedef {import('../..').TableColumnType} TableColumnType */
-/** @typedef {import('../..').ForeignKey} ForeignKey */
-
-const knex = require('knex')
-const listTables = require('../util/listTables')
-const getTypeAlias = require('../util/getTypeAlias')
+import Knex, { Config, ColumnInfo } from 'knex'
+import { AbstractDatabase } from '../abstract/AbstractDatabase'
+import { Table } from '../abstract/Table'
+import { TableColumn } from '../abstract/TableColumn'
+import listTables from '../util/listTables'
+import getTypeAlias from '../util/getTypeAlias'
+import getColumnComments from '../util/getColumnComments'
+import transformDefaultValue from '../util/transformDefaultValue'
+import getPrimaryKey from '../util/getPrimaryKey'
+import getForeignKeys from '../util/getForeignKeys'
+import getIndexes from '../util/getIndexes'
+import getUniques from '../util/getUniques'
 
 /**
  * @param {Config} config Knex configuration
  * @param {string} schemaName Table and column prefix: `<schemaName>.<tableName>`
  * @param {string} prefix Table and column name prefix: `<prefix><tableName>`
- * @return {Promise.<AbstractDatabase>}
  */
-module.exports = function (config, schemaName = 'public', prefix = '') {
+export default function read (config: Config, schemaName = 'public', prefix = ''): Promise<AbstractDatabase> {
   const reader = new Reader(config, schemaName, prefix)
   return reader.read()
 }
 
 class Reader {
-  /**
-   * @param {Config} config
-   * @param {string} schemaName
-   * @param {string} prefix
-   */
-  constructor (config, schemaName, prefix) {
+  config: Config
+  schemaName: string
+  prefix: string
+  knex: Knex
+  database: AbstractDatabase
+
+  constructor (config: Config, schemaName: string, prefix: string) {
     this.config = config
     this.schemaName = schemaName
     this.prefix = prefix
-    this.knex = knex(config)
-    /** @type {AbstractDatabase} */
+    this.knex = Knex(config)
     this.database = {
       tables: [],
       tableMap: new Map(),
     }
   }
 
-  /**
-   * @return {Promise.<AbstractDatabase>}
-   */
-  async read () {
-    const tables = await listTables(this.knex, this.schemaName)
-    for (const { name, comment } of tables) {
-      /** @type {Table} */
-      const table = {
-        name,
+  public async read () {
+    const tables: { name: string, comment: string }[] = await listTables(this.knex, this.schemaName)
+    for (const { name: tableName, comment } of tables) {
+      const table: Table = {
+        name: tableName,
         comment,
         annotations: {},
         columns: [],
@@ -56,37 +53,68 @@ class Reader {
         uniques: [],
       }
       this.database.tables.push(table)
-      this.database.tableMap.set(name, table)
+      this.database.tableMap.set(tableName, table)
+
+      // Foreign keys
+      const foreignKeys = await getForeignKeys(this.knex, tableName, this.schemaName)
 
       // Columns
-      const columnInfo = await this.knex(name).columnInfo()
+      const columnComments = await getColumnComments(this.knex, tableName, this.schemaName)
+      const columnInfo: { [key: string]: ColumnInfo } = await this.knex(tableName).columnInfo() as any
       for (const key in columnInfo) {
         const info = columnInfo[key]
-        /** @type {TableColumn} */
-        const column = {
+        const foreign = foreignKeys.find(k => k.column === key)
+        const column: TableColumn = {
           name: key,
-          comment: null, // TODO
+          comment: this.getComment(columnComments, key),
           annotations: {},
           ...getTypeAlias(info.type, info.maxLength),
-          notNull: !info.nullable,
-          defaultValue: info.defaultValue,
-          foreign: null,
+          nullable: info.nullable,
+          defaultValue: transformDefaultValue(info.defaultValue),
+          foreign: foreign ? {
+            type: null,
+            field: null,
+            tableName: foreign.foreignTable,
+            columnName: foreign.foreignColumn,
+          } : null,
         }
         table.columns.push(column)
         table.columnMap.set(key, column)
       }
+
+      // Primary key
+      const primaries = await getPrimaryKey(this.knex, tableName, this.schemaName)
+      table.primaries = primaries.map(p => ({
+        columns: [p.column],
+        name: p.indexName,
+      }))
+
+      // Index
+      const indexes = await getIndexes(this.knex, tableName, this.schemaName)
+      table.indexes = indexes.filter(
+        i => i.columnNames.length > 1 ||
+          // Not already the primary key
+          !primaries.find(p => p.column === i.columnNames[0])
+      ).map(i => ({
+        name: i.indexName,
+        columns: i.columnNames,
+        type: i.type,
+      }))
+
+      // Unique constraints
+      const uniques = await getUniques(this.knex, tableName, this.schemaName)
+      table.uniques = uniques.map(u => ({
+        columns: u.columnNames,
+        name: u.indexName,
+      }))
     }
-    console.log(this.database.tables)
+
     return this.database
   }
-}
 
-module.exports({
-  client: 'postgres',
-  connection: {
-    host: 'localhost',
-    database: 'livestorm_development',
-    user: 'livestorm',
-    password: 'kaliarco37',
-  },
-})
+  private getComment (comments: { column: string, comment: string }[], column: string) {
+    const row = comments.find(c => c.column === column)
+    if (row) return row.comment
+    return null
+  }
+}

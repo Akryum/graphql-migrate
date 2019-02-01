@@ -16,7 +16,7 @@
     "graphql": "^14.1.1",
     "graphql-annotations": "^0.0.2",
     "knex": "^0.16.3",
-    "shallow-equal": "^1.0.0"
+    "lodash.isequal": "^4.5.0"
   },
   "devDependencies": {
     "@nodepack/plugin-typescript": "^0.0.2",

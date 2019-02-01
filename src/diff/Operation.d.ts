@@ -12,11 +12,8 @@ export type OperationType =
   'table.foreign.drop' |
   'column.create' |
   'column.rename' |
-  'column.type.set' |
-  'column.comment.set' |
-  'column.drop' |
-  'column.nullable.set' |
-  'column.default.set'
+  'column.alter' |
+  'column.drop'
 
 export interface Operation {
   type: OperationType
@@ -84,7 +81,8 @@ export interface TableForeignCreateOperation extends Operation {
   type: 'table.foreign.create'
   table: string
   column: string
-  reference: string
+  referenceTable: string
+  referenceColumn: string
 }
 
 export interface TableForeignDropOperation extends Operation {
@@ -99,14 +97,20 @@ export interface ColumnCreateOperation extends Operation {
   column: string
   columnType: string
   args: string[]
+  comment: string | null
+  nullable: boolean
+  defaultValue: any
 }
 
-export interface ColumnTypeSetOperation extends Operation {
-  type: 'column.type.set'
+export interface ColumnAlterOperation extends Operation {
+  type: 'column.alter'
   table: string
   column: string
   columnType: string
   args: string[]
+  comment: string | null
+  nullable: boolean
+  defaultValue: any
 }
 
 export interface ColumnRenameOperation extends Operation {
@@ -116,29 +120,8 @@ export interface ColumnRenameOperation extends Operation {
   toName: string
 }
 
-export interface ColumnCommentSetOperation extends Operation {
-  type: 'column.comment.set'
-  table: string
-  column: string
-  comment: string | null
-}
-
 export interface ColumnDropOperation extends Operation {
   type: 'column.drop'
   table: string
   column: string
-}
-
-export interface ColumnNullableSetOperation extends Operation {
-  type: 'column.nullable.set'
-  table: string
-  column: string
-  nullable: boolean
-}
-
-export interface ColumnDefaultSetOperation extends Operation {
-  type: 'column.default.set'
-  table: string
-  column: string
-  value: any
 }

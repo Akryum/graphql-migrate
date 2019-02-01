@@ -25,11 +25,11 @@ function tableFactory (options: any): Table {
 function columnFactory (options: any): TableColumn {
   return {
     args: [],
-    notNull: undefined,
+    nullable: true,
     annotations: {},
     defaultValue: undefined,
-    comment: undefined,
-    foreign: undefined,
+    comment: null,
+    foreign: null,
     ...options,
   }
 }
@@ -44,7 +44,7 @@ describe('compute diff', () => {
           columnFactory({
             name: 'id',
             type: 'uuid',
-            notNull: true,
+            nullable: false,
           }),
           columnFactory({
             name: 'name',
@@ -57,10 +57,10 @@ describe('compute diff', () => {
         ],
       }),
     ]))
-    expect(result.length).toBe(6)
+    expect(result.length).toBe(5)
     expect(result[0]).toEqual({
       type: 'table.create',
-      table: 'User'
+      table: 'User',
     })
     expect(result[1]).toEqual({
       type: 'table.comment.set',
@@ -73,21 +73,21 @@ describe('compute diff', () => {
       column: 'id',
       columnType: 'uuid',
       args: [],
+      nullable: false,
+      defaultValue: undefined,
+      comment: null,
     })
     expect(result[3]).toEqual({
-      type: 'column.nullable.set',
-      table: 'User',
-      column: 'id',
-      nullable: false,
-    })
-    expect(result[4]).toEqual({
       type: 'column.create',
       table: 'User',
       column: 'name',
       columnType: 'string',
       args: [150],
+      nullable: true,
+      defaultValue: undefined,
+      comment: null,
     })
-    expect(result[5]).toEqual({
+    expect(result[4]).toEqual({
       type: 'table.primary.set',
       table: 'User',
       columns: ['id'],
@@ -126,7 +126,9 @@ describe('compute diff', () => {
         name: 'User',
         comment: 'New comment',
       }),
-    ]))
+    ]), {
+      updateComments: true,
+    })
     expect(result.length).toBe(1)
     expect(result[0]).toEqual({
       type: 'table.comment.set',
@@ -158,6 +160,9 @@ describe('compute diff', () => {
       column: 'id',
       columnType: 'uuid',
       args: [],
+      nullable: true,
+      defaultValue: undefined,
+      comment: null,
     })
   })
 
@@ -195,6 +200,9 @@ describe('compute diff', () => {
       column: 'email',
       columnType: 'string',
       args: [],
+      nullable: true,
+      defaultValue: undefined,
+      comment: null,
     })
   })
 
@@ -255,16 +263,21 @@ describe('compute diff', () => {
           }),
         ],
       }),
-    ]))
+    ]), {
+      updateComments: true,
+    })
     expect(result.length).toBe(1)
     expect(result[0]).toEqual({
-      type: 'column.comment.set',
+      type: 'column.alter',
       table: 'User',
       column: 'id',
+      columnType: 'uuid',
+      args: [],
+      nullable: true,
+      defaultValue: undefined,
       comment: 'bar',
     })
   })
-
 
   test('change column type', async () => {
     const result = await computeDiff(dbFactory([
@@ -290,11 +303,14 @@ describe('compute diff', () => {
     ]))
     expect(result.length).toBe(1)
     expect(result[0]).toEqual({
-      type: 'column.type.set',
+      type: 'column.alter',
       table: 'User',
       column: 'id',
       columnType: 'string',
       args: [],
+      nullable: true,
+      defaultValue: undefined,
+      comment: null,
     })
   })
 
@@ -324,11 +340,14 @@ describe('compute diff', () => {
     ]))
     expect(result.length).toBe(1)
     expect(result[0]).toEqual({
-      type: 'column.type.set',
+      type: 'column.alter',
       table: 'User',
       column: 'id',
       columnType: 'string',
       args: [200],
+      nullable: true,
+      defaultValue: undefined,
+      comment: null,
     })
   })
 
@@ -340,7 +359,7 @@ describe('compute diff', () => {
           columnFactory({
             name: 'id',
             type: 'string',
-            notNull: true,
+            nullable: false,
           }),
         ],
       }),
@@ -351,17 +370,21 @@ describe('compute diff', () => {
           columnFactory({
             name: 'id',
             type: 'string',
-            notNull: false,
+            nullable: true,
           }),
         ],
       }),
     ]))
     expect(result.length).toBe(1)
     expect(result[0]).toEqual({
-      type: 'column.nullable.set',
+      type: 'column.alter',
       table: 'User',
       column: 'id',
+      columnType: 'string',
+      args: [],
       nullable: true,
+      defaultValue: undefined,
+      comment: null,
     })
   })
 
@@ -391,10 +414,14 @@ describe('compute diff', () => {
     ]))
     expect(result.length).toBe(1)
     expect(result[0]).toEqual({
-      type: 'column.default.set',
+      type: 'column.alter',
       table: 'User',
       column: 'id',
-      value: 'bar',
+      columnType: 'string',
+      args: [],
+      nullable: true,
+      defaultValue: 'bar',
+      comment: null,
     })
   })
 

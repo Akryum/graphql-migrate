@@ -1,14 +1,13 @@
 import { GraphQLField, GraphQLScalarType } from 'graphql'
 import { TableColumnType } from './TableColumn'
+import { parseAnnotations } from 'graphql-annotations'
 
 interface TableColumnTypeDescriptor {
   type: TableColumnType
   args: any[]
 }
 
-import { parseAnnotations } from 'graphql-annotations'
-
-export default function(field: GraphQLField<any, any>, scalarType: GraphQLScalarType | null = null, annotations: any = null): TableColumnTypeDescriptor | null {
+export default function (field: GraphQLField<any, any>, scalarType: GraphQLScalarType | null = null, annotations: any = null): TableColumnTypeDescriptor | null {
   if (!annotations) {
     annotations = parseAnnotations('db', field.description || null)
   }
@@ -25,7 +24,7 @@ export default function(field: GraphQLField<any, any>, scalarType: GraphQLScalar
   if ((scalarType && scalarType.name === 'String') || annotations.type === 'string') {
     return {
       type: 'string',
-      args: [annotations.length],
+      args: [annotations.length || 255],
     }
   }
 

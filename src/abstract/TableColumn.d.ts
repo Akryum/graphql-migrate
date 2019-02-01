@@ -17,8 +17,8 @@ export type TableColumnType =
   'uuid'
 
 export interface ForeignKey {
-  type: string
-  field: string
+  type: string | null
+  field: string | null
   tableName: string | null
   columnName: string | null
 }
@@ -29,7 +29,7 @@ export interface TableColumn {
   annotations: any
   type: string
   args: any[]
-  notNull: boolean
+  nullable: boolean
   foreign: ForeignKey | null
   defaultValue: any
 }

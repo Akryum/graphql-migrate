@@ -11,20 +11,35 @@ import {
 } from 'graphql'
 import { TypeMap } from 'graphql/type/schema'
 import { AbstractDatabase } from './AbstractDatabase'
-import { Table, TableUnique } from './Table'
-import { TableColumn, TableColumnType, ForeignKey } from './TableColumn'
+import { Table } from './Table'
+import { TableColumn, ForeignKey } from './TableColumn'
 import { parseAnnotations } from 'graphql-annotations'
 import getColumnTypeFromScalar from './getColumnTypeFromScalar'
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
 const INDEX_TYPES = [
-  { annotation: 'index', list: 'indexes', hasType: true },
-  { annotation: 'primary', list: 'primaries', default: (name: string, type: string) => name === 'id' && type === 'ID', max: 1 },
-  { annotation: 'unique', list: 'uniques' },
+  {
+    annotation: 'index',
+    list: 'indexes',
+    hasType: true,
+    defaultName: (table: string, column: string) => `${table}_${column}_index`,
+  },
+  {
+    annotation: 'primary',
+    list: 'primaries',
+    default: (name: string, type: string) => name === 'id' && type === 'ID',
+    max: 1,
+    defaultName: (table: string) => `${table}_pkey`,
+  },
+  {
+    annotation: 'unique',
+    list: 'uniques',
+    defaultName: (table: string, column: string) => `${table}_${column}_unique`,
+  },
 ]
 
-export default async function(schema: GraphQLSchema): Promise<AbstractDatabase> {
+export default async function (schema: GraphQLSchema): Promise<AbstractDatabase> {
   const builder = new AbstractDatabaseBuilder(schema)
   return builder.build()
 }
@@ -33,10 +48,12 @@ class AbstractDatabaseBuilder {
   private schema: GraphQLSchema
   private typeMap: TypeMap
   private database: AbstractDatabase
+  /** Used to push new intermediary tables after current table */
+  private tableQueue: Table[] = []
   private currentTable: Table | null = null
   private currentType: string | null = null
 
-  constructor(schema: GraphQLSchema) {
+  constructor (schema: GraphQLSchema) {
     this.schema = schema
     this.typeMap = this.schema.getTypeMap()
 
@@ -46,7 +63,7 @@ class AbstractDatabaseBuilder {
     }
   }
 
-  public build(): AbstractDatabase {
+  public build (): AbstractDatabase {
     for (const key in this.typeMap) {
       const type = this.typeMap[key]
       // Tables
@@ -54,11 +71,12 @@ class AbstractDatabaseBuilder {
         this.buildTable(type)
       }
     }
+    this.database.tables.push(...this.tableQueue)
     this.fillForeignKeys()
     return this.database
   }
 
-  private buildTable(type: GraphQLObjectType) {
+  private buildTable (type: GraphQLObjectType) {
     const annotations: any = parseAnnotations('db', type.description || null)
 
     const table: Table = {
@@ -86,10 +104,11 @@ class AbstractDatabaseBuilder {
 
     this.database.tables.push(table)
     this.database.tableMap.set(type.name, table)
+
     return table
   }
 
-  private buildColumn(table: Table, field: GraphQLField<any, any>) {
+  private buildColumn (table: Table, field: GraphQLField<any, any>) {
     const descriptor = this.getFieldDescriptor(field)
     if (!descriptor) { return }
     table.columns.push(descriptor)
@@ -97,7 +116,10 @@ class AbstractDatabaseBuilder {
     return descriptor
   }
 
-  private getFieldDescriptor(field: GraphQLField<any, any>, fieldType: GraphQLOutputType | null = null): TableColumn | null {
+  private getFieldDescriptor (
+    field: GraphQLField<any, any>,
+    fieldType: GraphQLOutputType | null = null
+  ): TableColumn | null {
     const annotations: any = parseAnnotations('db', field.description || null)
     if (!fieldType) {
       fieldType = isNonNullType(field.type) ? field.type.ofType : field.type
@@ -202,7 +224,7 @@ class AbstractDatabaseBuilder {
             primaries: [],
             uniques: [],
           }
-          this.database.tables.push(joinTable)
+          this.tableQueue.push(joinTable)
           this.database.tableMap.set(tableName, joinTable)
         }
         let descriptors = []
@@ -236,7 +258,7 @@ class AbstractDatabaseBuilder {
         // Index
         joinTable.indexes.push({
           columns: descriptors.map((d) => d.name),
-          name: null,
+          name: `${joinTable.name}_${descriptors.map(d => d.name).join('_')}_index`.toLowerCase().substr(0, 63),
           type: null,
         })
       } else {
@@ -272,9 +294,12 @@ class AbstractDatabaseBuilder {
         const list: any[] = this.currentTable[type.list]
         let index = indexName ? list.find((i) => i.name === indexName) : null
         if (!index) {
-          index = {
+          index = type.hasType ? {
             name: indexName,
             type: indexType,
+            columns: [],
+          } : {
+            name: indexName,
             columns: [],
           }
           if (type.max && list.length === type.max) {
@@ -283,6 +308,9 @@ class AbstractDatabaseBuilder {
           list.push(index)
         }
         index.columns.push(columnName)
+        if (!index.name) {
+          index.name = type.defaultName(this.currentTable.name, columnName).toLowerCase().substr(0, 63)
+        }
       }
     }
 
@@ -292,7 +320,7 @@ class AbstractDatabaseBuilder {
       annotations,
       type,
       args: args || [],
-      notNull,
+      nullable: !notNull,
       foreign,
       defaultValue: annotations.default || null,
     }
@@ -301,16 +329,16 @@ class AbstractDatabaseBuilder {
   /**
    * Put the correct values for `foreign.tableName` and `foreign.columnName` in the columns.
    */
-  private fillForeignKeys() {
+  private fillForeignKeys () {
     for (const table of this.database.tables) {
       for (const column of table.columns) {
         if (column.foreign) {
-          const foreignTable = this.database.tableMap.get(column.foreign.type)
+          const foreignTable = this.database.tableMap.get(column.foreign.type || '')
           if (!foreignTable) {
             console.warn(`Foreign key ${table.name}.${column.name}: Table not found for type ${column.foreign.type}.`)
             continue
           }
-          const foreignColumn = foreignTable.columnMap.get(column.foreign.field)
+          const foreignColumn = foreignTable.columnMap.get(column.foreign.field || '')
           if (!foreignColumn) {
             console.warn(`Foreign key ${table.name}.${column.name}: Column not found for field ${column.foreign.field} in table ${foreignTable.name}.`)
             continue

@@ -59,8 +59,8 @@ describe('create abstract database', () => {
     const [User] = adb.tables
     expect(User.columns.length).toBe(2)
     const [colName, colNickname] = User.columns
-    expect(colName.notNull).toBe(true)
-    expect(colNickname.notNull).toBe(false)
+    expect(colName.nullable).toBe(false)
+    expect(colNickname.nullable).toBe(true)
   })
 
   test('default value', async () => {
@@ -335,7 +335,7 @@ describe('create abstract database', () => {
     `)
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(3)
-    const [Join] = adb.tables
+    const Join = adb.tables[2]
     expect(Join.name).toBe('Message_users_JOIN_User_messages')
     const [colMessageUsers, colUserMessages] = Join.columns
     expect(colMessageUsers.name).toBe('users_foreign')
@@ -357,7 +357,7 @@ describe('create abstract database', () => {
     `)
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(2)
-    const [UserContacts, User] = adb.tables
+    const [User, UserContacts] = adb.tables
     expect(UserContacts.name).toBe('User_contacts_JOIN_User_contacts')
     expect(User.name).toBe('User')
     expect(User.columns.length).toBe(1)
