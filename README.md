@@ -2,7 +2,7 @@
 
 [![circleci](https://img.shields.io/circleci/project/github/Akryum/graphql-migrate/master.svg)](https://circleci.com/gh/Akryum/graphql-migrate)
 
-Create or migrate SQL databases from a GraphQL server schema
+Instantly create or update a SQL database from a GraphQL API schema.
 
 <p align="center">
   <a href="https://www.patreon.com/akryum" target="_blank">
@@ -41,6 +41,13 @@ npm i graphql-migrate
 ```
 
 ## Programmatic Usage
+
+The `migrate` methods is able to create and update tables and columns. It will execute those steps:
+
+- Read your database and construct an abstraction.
+- Read your GraphQL schema and turn it to an equivalent abstraction.
+- Compare both abstractions and generate database operations.
+- Convert to SQL and execute the queries from operations using [knex](https://knexjs.org).
 
 `migrate` has the following arguments:
 
@@ -85,7 +92,7 @@ type Message {
 `)
 
 migrate(config, schema, {
-  updateComments: true,
+  // Additional options here
 }).then(() => {
   console.log('Your database is up-to-date!')
 })
@@ -300,6 +307,8 @@ type User {
 }
 ```
 
+See [knex schema builder methods](https://knexjs.org/#Schema-increments) for the supported types.
+
 ### Simple list
 
 ```graphql
@@ -398,7 +407,7 @@ This will create an additional join table:
 
 | Icon | Meaning |
 |:--:| ----- |
-| ✅ | Supported |
+| ✔️ | Supported |
 | ❓ | Not tested |
 | - | Not implemented |
 | ❌ | Not supported |
@@ -407,21 +416,21 @@ This will create an additional join table:
 
 | Operation     | pg | mysql | mssql | oracle | sqlite3 |
 | ------------- |:--:|:-----:|:-----:|:------:|:-------:|
-| Read tables   | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Read table comments | ✅ | - | - | - | ❌ |
-| Read columns  | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Read column types  | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Read column comments | ✅ | - | - | - | ❌ |
-| Read column default values  | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Read foreign keys | ✅ | - | - | - | - |
-| Read primary keys | ✅ | - | - | - | - |
-| Read index | ✅ | - | - | - | - |
-| Read unique constraint | ✅ | - | - | - | - |
-| Write tables   | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Write table comments | ✅ | ❓ | ❓ | ❓ | ❌ |
-| Write columns   | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Write column comments | ✅ | ❓ | ❓ | ❓ | ❌ |
-| Write foreign keys | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Write primary keys | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Write index | ✅ | ❓ | ❓ | ❓ | ❓ |
-| Write unique constraint | ✅ | ❓ | ❓ | ❓ | ❓ |
+| Read tables   | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Read table comments | ✔️ | - | - | - | ❌ |
+| Read columns  | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Read column types  | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Read column comments | ✔️ | - | - | - | ❌ |
+| Read column default values  | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Read foreign keys | ✔️ | - | - | - | - |
+| Read primary keys | ✔️ | - | - | - | - |
+| Read index | ✔️ | - | - | - | - |
+| Read unique constraint | ✔️ | - | - | - | - |
+| Write tables   | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Write table comments | ✔️ | ❓ | ❓ | ❓ | ❌ |
+| Write columns   | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Write column comments | ✔️ | ❓ | ❓ | ❓ | ❌ |
+| Write foreign keys | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Write primary keys | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Write index | ✔️ | ❓ | ❓ | ❓ | ❓ |
+| Write unique constraint | ✔️ | ❓ | ❓ | ❓ | ❓ |
