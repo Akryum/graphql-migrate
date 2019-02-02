@@ -209,7 +209,7 @@ type User {
 
 ### Simple index
 
-```grahpql
+```graphql
 type User {
   id: ID!
 
