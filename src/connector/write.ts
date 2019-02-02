@@ -24,27 +24,28 @@ const ALTER_TABLE_CHILD_OPS: OperationType[] = [
  * @param {Operation[]} operations
  * @param {Config} config Knex configuration
  * @param {string} schemaName Table schema prefix: `<schemaName>.<tableName>`
- * @param {string} prefix Table and column name prefix: `<prefix><tableName>`
+ * @param {string} tablePrefix Table name prefix: `<prefix><tableName>`
+ * @param {string} columnPrefix Column name prefix: `<prefix><columnName>`
  */
-export default async function (operations: Operation[], config: Config, schemaName = 'public', prefix = '') {
-  const writer = new Writer(operations, config, schemaName, prefix)
+export default async function (operations: Operation[], config: Config, schemaName = 'public', tablePrefix = '', columnPrefix = '') {
+  const writer = new Writer(operations, config, schemaName, tablePrefix, columnPrefix)
   return writer.write()
 }
 
 class Writer {
   private operations: Operation[]
-  private config: Config
   private schemaName: string
-  private prefix: string
+  private tablePrefix: string
+  private columnPrefix: string
   private knex: Knex
   // @ts-ignore
   private trx: Knex.Transaction
 
-  constructor (operations: Operation[], config: Config, schemaName = 'public', prefix = '') {
+  constructor (operations: Operation[], config: Config, schemaName = 'public', tablePrefix = '', columnPrefix = '') {
     this.operations = operations
-    this.config = config
     this.schemaName = schemaName
-    this.prefix = prefix
+    this.tablePrefix = tablePrefix
+    this.columnPrefix = columnPrefix
     this.knex = Knex(config)
   }
 
@@ -59,25 +60,30 @@ class Writer {
           break
         case 'table.rename':
           const trop = (op as Operations.TableRenameOperation)
-          await this.trx.schema.withSchema(this.schemaName).renameTable(this.getName(trop.fromName), this.getName(trop.toName))
+          await this.trx.schema.withSchema(this.schemaName).renameTable(this.getTableName(trop.fromName), this.getTableName(trop.toName))
           break
         case 'table.drop':
           const tdop = (op as Operations.TableDropOperation)
-          await this.trx.schema.withSchema(this.schemaName).dropTable(this.getName(tdop.table))
+          await this.trx.schema.withSchema(this.schemaName).dropTable(this.getTableName(tdop.table))
           break
         default:
+          this.operations.splice(0, 0, op)
           await this.alterTable((op as any).table)
         }
       }
     })
   }
 
-  private getName (name: string) {
-    return `${this.prefix}${name}`
+  private getTableName (name: string) {
+    return `${this.tablePrefix}${name}`
   }
 
-  private getNames (names: string[]) {
-    return names.map(name => this.getName(name))
+  private getColumnName (name: string) {
+    return `${this.columnPrefix}${name}`
+  }
+
+  private getColumnNames (names: string[]) {
+    return names.map(name => this.getColumnName(name))
   }
 
   private removeOperation (op: Operation) {
@@ -86,7 +92,7 @@ class Writer {
   }
 
   private async createTable (op: Operations.TableCreateOperation) {
-    await this.trx.schema.withSchema(this.schemaName).createTable(this.getName(op.table), (table) => {
+    await this.trx.schema.withSchema(this.schemaName).createTable(this.getTableName(op.table), (table) => {
       const childOps: Operation[] = this.operations.filter(
         (child) => CREATE_TABLE_CHILD_OPS.includes(child.type) &&
         (child as any).table === op.table,
@@ -101,19 +107,24 @@ class Writer {
           break
         case 'table.foreign.create':
           const tfop = (childOp as Operations.TableForeignCreateOperation)
-          table.foreign(this.getName(tfop.column)).references(`${this.getName(tfop.referenceTable)}.${this.getName(tfop.referenceColumn)}`)
+          table.foreign(this.getColumnName(tfop.column))
+            .references(this.getColumnName(tfop.referenceColumn))
+            .inTable(this.getTableName(tfop.referenceTable))
           break
         case 'table.index.create':
           const tiop = (childOp as Operations.TableIndexCreateOperation)
-          table.index(this.getNames(tiop.columns), tiop.indexName || undefined, tiop.indexType || undefined)
+          table.index(this.getColumnNames(tiop.columns), tiop.indexName || undefined, tiop.indexType || undefined)
           break
         case 'table.unique.create':
           const tuop = (childOp as Operations.TableUniqueCreateOperation)
-          table.unique(this.getNames(tuop.columns), tuop.indexName || undefined)
+          table.unique(this.getColumnNames(tuop.columns), tuop.indexName || undefined)
           break
         case 'table.primary.set':
           const tpop = (childOp as Operations.TablePrimarySetOperation)
-          if (tpop.columns) { table.primary(this.getNames(tpop.columns)) }
+          if (tpop.columns) {
+            // @ts-ignore
+            table.primary(this.getColumnNames(tpop.columns), tpop.indexName)
+          }
           break
         }
         this.removeOperation(childOp)
@@ -124,7 +135,7 @@ class Writer {
   private createColumn (op: Operations.ColumnCreateOperation, table: CreateTableBuilder) {
     if (op.columnType in table) {
       // @ts-ignore
-      let col: Knex.ColumnBuilder = table[op.columnType](this.getName(op.column), ...op.args)
+      let col: Knex.ColumnBuilder = table[op.columnType](this.getColumnName(op.column), ...op.args)
       if (op.comment) {
         col = col.comment(op.comment)
       }
@@ -143,7 +154,7 @@ class Writer {
   }
 
   private async alterTable (tableName: string) {
-    await this.trx.schema.withSchema(this.schemaName).alterTable(this.getName(tableName), (table) => {
+    await this.trx.schema.withSchema(this.schemaName).alterTable(this.getTableName(tableName), (table) => {
       const childOps = this.operations.filter(
         (child) => ALTER_TABLE_CHILD_OPS.includes(child.type) &&
         (child as any).table === tableName,
@@ -155,44 +166,52 @@ class Writer {
           break
         case 'table.foreign.create':
           const tfop = (childOp as Operations.TableForeignCreateOperation)
-          table.foreign(this.getName(tfop.column)).references(`${this.getName(tfop.referenceTable)}.${this.getName(tfop.referenceColumn)}`)
+          table.foreign(this.getColumnName(tfop.column))
+            .references(this.getColumnName(tfop.referenceColumn))
+            .inTable(this.getTableName(tfop.referenceTable))
           break
         case 'table.foreign.drop':
           const tfdop = (childOp as Operations.TableForeignDropOperation)
-          table.dropForeign([this.getName(tfdop.column)])
+          table.dropForeign([this.getColumnName(tfdop.column)])
           break
         case 'table.index.create':
           const tiop = (childOp as Operations.TableIndexCreateOperation)
-          table.index(this.getNames(tiop.columns), tiop.indexName || undefined, tiop.indexType || undefined)
+          table.index(this.getColumnNames(tiop.columns), tiop.indexName || undefined, tiop.indexType || undefined)
           break
         case 'table.index.drop':
           const tidop = (childOp as Operations.TableIndexDropOperation)
-          table.dropIndex(this.getNames(tidop.columns), tidop.indexName || undefined)
+          table.dropIndex(this.getColumnNames(tidop.columns), tidop.indexName || undefined)
           break
         case 'table.unique.create':
           const tuop = (childOp as Operations.TableUniqueCreateOperation)
-          table.unique(this.getNames(tuop.columns), tuop.indexName || undefined)
+          table.unique(this.getColumnNames(tuop.columns), tuop.indexName || undefined)
           break
         case 'table.unique.drop':
           const tudop = (childOp as Operations.TableUniqueDropOperation)
-          table.dropUnique(this.getNames(tudop.columns), tudop.indexName || undefined)
+          table.dropUnique(this.getColumnNames(tudop.columns), tudop.indexName || undefined)
           break
         case 'table.primary.set':
           const tpop = (childOp as Operations.TablePrimarySetOperation)
-          tpop.columns ? table.primary(this.getNames(tpop.columns)) : table.dropPrimary()
+          if (tpop.columns) {
+            // @ts-ignore
+            table.primary(this.getColumnNames(tpop.columns), tpop.indexName)
+          } else {
+            // @ts-ignore
+            table.dropPrimary(tpop.indexName)
+          }
           break
         case 'column.create':
           this.createColumn(childOp as Operations.ColumnCreateOperation, table)
           break
         case 'column.rename':
           const crop = (childOp as Operations.ColumnRenameOperation)
-          table.renameColumn(this.getName(crop.fromName), this.getName(crop.toName))
+          table.renameColumn(this.getColumnName(crop.fromName), this.getColumnName(crop.toName))
           break
         case 'column.alter':
           this.alterColumn(table, (childOp as Operations.ColumnAlterOperation))
           break
         case 'column.drop':
-          table.dropColumn(this.getName((childOp as Operations.ColumnDropOperation).column))
+          table.dropColumn(this.getColumnName((childOp as Operations.ColumnDropOperation).column))
           break
         }
         this.removeOperation(childOp)

@@ -14,24 +14,32 @@ import getUniques from '../util/getUniques'
 /**
  * @param {Config} config Knex configuration
  * @param {string} schemaName Table and column prefix: `<schemaName>.<tableName>`
- * @param {string} prefix Table and column name prefix: `<prefix><tableName>`
+ * @param {string} tablePrefix Table name prefix: `<prefix><tableName>`
+ * @param {string} columnPrefix Column name prefix: `<prefix><columnName>`
  */
-export default function read (config: Config, schemaName = 'public', prefix = ''): Promise<AbstractDatabase> {
-  const reader = new Reader(config, schemaName, prefix)
+export default function read (config: Config, schemaName = 'public', tablePrefix = '', columnPrefix = ''): Promise<AbstractDatabase> {
+  const reader = new Reader(config, schemaName, tablePrefix, columnPrefix)
   return reader.read()
 }
 
 class Reader {
   config: Config
   schemaName: string
-  prefix: string
+  tablePrefix: string
+  columnPrefix: string
   knex: Knex
   database: AbstractDatabase
 
-  constructor (config: Config, schemaName: string, prefix: string) {
+  constructor (
+    config: Config,
+    schemaName: string,
+    tablePrefix: string,
+    columnPrefix: string
+  ) {
     this.config = config
     this.schemaName = schemaName
-    this.prefix = prefix
+    this.tablePrefix = tablePrefix
+    this.columnPrefix = columnPrefix
     this.knex = Knex(config)
     this.database = {
       tables: [],
@@ -42,8 +50,10 @@ class Reader {
   public async read () {
     const tables: { name: string, comment: string }[] = await listTables(this.knex, this.schemaName)
     for (const { name: tableName, comment } of tables) {
+      const name = this.getTableName(tableName)
+      if (!name) continue
       const table: Table = {
-        name: tableName,
+        name,
         comment,
         annotations: {},
         columns: [],
@@ -53,7 +63,7 @@ class Reader {
         uniques: [],
       }
       this.database.tables.push(table)
-      this.database.tableMap.set(tableName, table)
+      this.database.tableMap.set(name, table)
 
       // Foreign keys
       const foreignKeys = await getForeignKeys(this.knex, tableName, this.schemaName)
@@ -62,10 +72,12 @@ class Reader {
       const columnComments = await getColumnComments(this.knex, tableName, this.schemaName)
       const columnInfo: { [key: string]: ColumnInfo } = await this.knex(tableName).columnInfo() as any
       for (const key in columnInfo) {
+        const columnName = this.getColumnName(key)
+        if (!columnName) continue
         const info = columnInfo[key]
         const foreign = foreignKeys.find(k => k.column === key)
         const column: TableColumn = {
-          name: key,
+          name: columnName,
           comment: this.getComment(columnComments, key),
           annotations: {},
           ...getTypeAlias(info.type, info.maxLength),
@@ -74,8 +86,8 @@ class Reader {
           foreign: foreign ? {
             type: null,
             field: null,
-            tableName: foreign.foreignTable,
-            columnName: foreign.foreignColumn,
+            tableName: this.getTableName(foreign.foreignTable),
+            columnName: this.getColumnName(foreign.foreignColumn),
           } : null,
         }
         table.columns.push(column)
@@ -85,7 +97,7 @@ class Reader {
       // Primary key
       const primaries = await getPrimaryKey(this.knex, tableName, this.schemaName)
       table.primaries = primaries.map(p => ({
-        columns: [p.column],
+        columns: this.getColumnNames([p.column]),
         name: p.indexName,
       }))
 
@@ -97,19 +109,38 @@ class Reader {
           !primaries.find(p => p.column === i.columnNames[0])
       ).map(i => ({
         name: i.indexName,
-        columns: i.columnNames,
+        columns: this.getColumnNames(i.columnNames),
         type: i.type,
       }))
 
       // Unique constraints
       const uniques = await getUniques(this.knex, tableName, this.schemaName)
       table.uniques = uniques.map(u => ({
-        columns: u.columnNames,
+        columns: this.getColumnNames(u.columnNames),
         name: u.indexName,
       }))
     }
 
     return this.database
+  }
+
+  private getTableName (name: string) {
+    if (name.startsWith(this.tablePrefix)) {
+      return name.substr(this.tablePrefix.length)
+    }
+    return null
+  }
+
+  private getColumnName (name: string) {
+    if (name.startsWith(this.columnPrefix)) {
+      return name.substr(this.columnPrefix.length)
+    }
+    return null
+  }
+
+  private getColumnNames (names: string[]): string [] {
+    // @ts-ignore
+    return names.map(name => this.getColumnName(name)).filter(n => !!n)
   }
 
   private getComment (comments: { column: string, comment: string }[], column: string) {

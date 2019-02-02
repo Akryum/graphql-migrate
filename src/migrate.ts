@@ -11,9 +11,13 @@ export interface Options {
    */
   dbSchemaName?: string
   /**
-   * Table and column name prefix: `<prefix><tableName>`.
+   * Table name prefix: `<prefix><tableName>`.
    */
-  dbPrefix?: string
+  dbTablePrefix?: string
+  /**
+   * Column name prefix: `<prefix><columnName>`.
+   */
+  dbColumnPrefix?: string
   /**
    * Overwrite table and column comments (not supported in some databases).
    */
@@ -30,7 +34,8 @@ export interface Options {
 
 export const defaultOptions: Options = {
   dbSchemaName: 'public',
-  dbPrefix: '',
+  dbTablePrefix: '',
+  dbColumnPrefix: '',
   updateComments: false,
   lowercaseNames: true,
   debug: false,
@@ -49,7 +54,12 @@ export default async function (config: Config, schema: GraphQLSchema, options: O
     }
   }
   // Read current
-  const existingAdb = await read(config, options.dbSchemaName, options.dbPrefix)
+  const existingAdb = await read(
+    config,
+    options.dbSchemaName,
+    options.dbTablePrefix,
+    options.dbColumnPrefix
+  )
   // Generate new
   const newAdb = await generateAbstractDatabase(schema, {
     lowercaseNames: options.lowercaseNames,
@@ -66,5 +76,11 @@ export default async function (config: Config, schema: GraphQLSchema, options: O
     console.log('OPERATIONS', ops)
   }
   // Write back to DB
-  await write(ops, config, options.dbSchemaName, options.dbPrefix)
+  await write(
+    ops,
+    config,
+    options.dbSchemaName,
+    options.dbTablePrefix,
+    options.dbColumnPrefix
+  )
 }
