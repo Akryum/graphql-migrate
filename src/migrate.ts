@@ -7,7 +7,7 @@ import write from './connector/write'
 
 export interface Options {
   /**
-   * Table and column prefix: `<schemaName>.<tableName>`.
+   * Table schema: `<schemaName>.<tableName>`.
    */
   dbSchemaName?: string
   /**
