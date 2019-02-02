@@ -10,7 +10,9 @@
     "eslint": "eslint {src,tests}/**/*.ts",
     "start": "node ./dist/app.js",
     "test:types": "tsc",
-    "test:unit": "jest"
+    "test:unit": "jest",
+    "test": "yarn run tslint && yarn run eslint && yarn run test:types && yarn run test:unit",
+    "prepublishOnly": "yarn run test && yarn run build"
   },
   "dependencies": {
     "graphql": "^14.1.1",
@@ -42,7 +44,8 @@
   },
   "homepage": "https://github.com/Akryum/graphql-migrate#readme",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "dist/app.js",
+  "types": "src/index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Akryum/graphql-migrate.git"
