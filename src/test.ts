@@ -11,7 +11,6 @@ async function test () {
       password: 'test',
       database: 'odaxio',
     },
-    debug: true,
   }
 
   const schema = buildSchema(`

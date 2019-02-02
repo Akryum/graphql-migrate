@@ -6,10 +6,25 @@ import computeDiff from './diff/computeDiff'
 import write from './connector/write'
 
 export interface Options {
+  /**
+   * Table and column prefix: `<schemaName>.<tableName>`.
+   */
   dbSchemaName?: string
+  /**
+   * Table and column name prefix: `<prefix><tableName>`.
+   */
   dbPrefix?: string
+  /**
+   * Overwrite table and column comments (not supported in some databases).
+   */
   updateComments?: boolean
+  /**
+   * Default table and column names all lowercase.
+   */
   lowercaseNames?: boolean
+  /**
+   * Display debug information
+   */
   debug?: boolean
 }
 
@@ -21,9 +36,18 @@ export const defaultOptions: Options = {
   debug: false,
 }
 
-export default async function (config: Config, schema: GraphQLSchema, options: Options): Promise<void> {
+export default async function (config: Config, schema: GraphQLSchema, options: Options = {}): Promise<void> {
   // Default options
-  options = Object.assign({}, defaultOptions, options)
+  options = {
+    ...defaultOptions,
+    ...options,
+  }
+  if (options.debug) {
+    config = {
+      ...config,
+      debug: true,
+    }
+  }
   // Read current
   const existingAdb = await read(config, options.dbSchemaName, options.dbPrefix)
   // Generate new
