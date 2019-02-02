@@ -36,7 +36,7 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(1)
     const [User] = adb.tables
-    expect(User.name).toBe('User')
+    expect(User.name).toBe('user')
     expect(User.comment).toBe('A user.')
     expect(User.columns.length).toBe(2)
     const [colId, colName] = User.columns
@@ -303,15 +303,15 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(2)
     const [User, Message] = adb.tables
-    expect(User.name).toBe('User')
-    expect(Message.name).toBe('Message')
+    expect(User.name).toBe('user')
+    expect(Message.name).toBe('message')
     expect(User.columns.length).toBe(1)
     expect(Message.columns.length).toBe(2)
     const [colId, colUserForeign] = Message.columns
     expect(colId.name).toBe('id')
     expect(colUserForeign.name).toBe('user_foreign')
     expect(colUserForeign.type).toBe('uuid')
-    expect(colUserForeign.foreign && colUserForeign.foreign.tableName).toBe('User')
+    expect(colUserForeign.foreign && colUserForeign.foreign.tableName).toBe('user')
     expect(colUserForeign.foreign && colUserForeign.foreign.columnName).toBe('id')
   })
 
@@ -336,15 +336,15 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(3)
     const Join = adb.tables[2]
-    expect(Join.name).toBe('Message_users_JOIN_User_messages')
+    expect(Join.name).toBe('message_users_join_user_messages')
     const [colMessageUsers, colUserMessages] = Join.columns
     expect(colMessageUsers.name).toBe('users_foreign')
     expect(colMessageUsers.type).toBe('uuid')
-    expect(colMessageUsers.foreign && colMessageUsers.foreign.tableName).toBe('Message')
+    expect(colMessageUsers.foreign && colMessageUsers.foreign.tableName).toBe('message')
     expect(colMessageUsers.foreign && colMessageUsers.foreign.columnName).toBe('id')
     expect(colUserMessages.name).toBe('messages_foreign')
     expect(colUserMessages.type).toBe('uuid')
-    expect(colUserMessages.foreign && colUserMessages.foreign.tableName).toBe('User')
+    expect(colUserMessages.foreign && colUserMessages.foreign.tableName).toBe('user')
     expect(colUserMessages.foreign && colUserMessages.foreign.columnName).toBe('id')
   })
 
@@ -358,17 +358,17 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(2)
     const [User, UserContacts] = adb.tables
-    expect(UserContacts.name).toBe('User_contacts_JOIN_User_contacts')
-    expect(User.name).toBe('User')
+    expect(UserContacts.name).toBe('user_contacts_join_user_contacts')
+    expect(User.name).toBe('user')
     expect(User.columns.length).toBe(1)
     const [col1, col2] = UserContacts.columns
     expect(col1.name).toBe('id_foreign')
     expect(col1.type).toBe('uuid')
-    expect(col1.foreign && col1.foreign.tableName).toBe('User')
+    expect(col1.foreign && col1.foreign.tableName).toBe('user')
     expect(col1.foreign && col1.foreign.columnName).toBe('id')
     expect(col2.name).toBe('id_foreign_other')
     expect(col2.type).toBe('uuid')
-    expect(col2.foreign && col2.foreign.tableName).toBe('User')
+    expect(col2.foreign && col2.foreign.tableName).toBe('user')
     expect(col2.foreign && col2.foreign.columnName).toBe('id')
   })
 
@@ -385,7 +385,7 @@ describe('create abstract database', () => {
     const adb = await generateAbstractDatabase(schema)
     expect(adb.tables.length).toBe(1)
     const [User] = adb.tables
-    expect(User.name).toBe('User')
+    expect(User.name).toBe('user')
     expect(User.columns.length).toBe(2)
     const [colId, colNames] = User.columns
     expect(colId.name).toBe('id')
