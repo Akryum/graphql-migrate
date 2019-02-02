@@ -13,7 +13,7 @@ const queries: any = {
   where
     c.conrelid = t.oid
     and n.oid = c.connamespace
-    and a.attrelid = t.oid 
+    and a.attrelid = t.oid
     and a.attnum = ANY(c.conkey)
     and c.contype = 'u'
     and t.relname = ?
@@ -32,8 +32,8 @@ const queries: any = {
 export default async function (
   knex: Knex,
   tableName: String,
-  schemaName: string
-): Promise<{ indexName: string, columnNames: string[] }[]> {
+  schemaName: string,
+): Promise<Array<{ indexName: string, columnNames: string[] }>> {
   const query = queries[knex.client.config.client]
   if (!query) {
     console.warn(`${knex.client.config.client} column unique constraints not supported`)

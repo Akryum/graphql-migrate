@@ -5,9 +5,9 @@ const queries: any = {
     sql: `SELECT
     kcu.column_name as "column",
     ccu.table_name AS "foreignTable",
-    ccu.column_name AS "foreignColumn" 
-FROM 
-    information_schema.table_constraints AS tc 
+    ccu.column_name AS "foreignColumn"
+FROM
+    information_schema.table_constraints AS tc
     JOIN information_schema.key_column_usage AS kcu
       ON tc.constraint_name = kcu.constraint_name
       AND tc.table_schema = kcu.table_schema
@@ -23,8 +23,8 @@ where tc.constraint_type = 'FOREIGN KEY' and tc.table_name = ? and tc.table_sche
 export default async function (
   knex: Knex,
   tableName: String,
-  schemaName: string
-): Promise<{ column: string, foreignTable: string, foreignColumn: string }[]> {
+  schemaName: string,
+): Promise<Array<{ column: string, foreignTable: string, foreignColumn: string }>> {
   const query = queries[knex.client.config.client]
   if (!query) {
     console.warn(`${knex.client.config.client} foreign keys not supported`)

@@ -58,7 +58,7 @@ export default async function (config: Config, schema: GraphQLSchema, options: O
     config,
     options.dbSchemaName,
     options.dbTablePrefix,
-    options.dbColumnPrefix
+    options.dbColumnPrefix,
   )
   // Generate new
   const newAdb = await generateAbstractDatabase(schema, {
@@ -81,6 +81,6 @@ export default async function (config: Config, schema: GraphQLSchema, options: O
     config,
     options.dbSchemaName,
     options.dbTablePrefix,
-    options.dbColumnPrefix
+    options.dbColumnPrefix,
   )
 }

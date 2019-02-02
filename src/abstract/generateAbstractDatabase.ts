@@ -43,7 +43,7 @@ export default async function (
   schema: GraphQLSchema,
   {
     lowercaseNames = true,
-  } = {}
+  } = {},
 ): Promise<AbstractDatabase> {
   const builder = new AbstractDatabaseBuilder(schema, {
     lowercaseNames,
@@ -86,7 +86,7 @@ class AbstractDatabaseBuilder {
   }
 
   private getName (name: string) {
-    if (this.lowercaseNames) return name.toLowerCase()
+    if (this.lowercaseNames) { return name.toLowerCase() }
     return name
   }
 
@@ -132,7 +132,7 @@ class AbstractDatabaseBuilder {
 
   private getFieldDescriptor (
     field: GraphQLField<any, any>,
-    fieldType: GraphQLOutputType | null = null
+    fieldType: GraphQLOutputType | null = null,
   ): TableColumn | null {
     const annotations: any = parseAnnotations('db', field.description || null)
     if (!fieldType) {
@@ -272,7 +272,7 @@ class AbstractDatabaseBuilder {
         // Index
         joinTable.indexes.push({
           columns: descriptors.map((d) => d.name),
-          name: `${joinTable.name}_${descriptors.map(d => d.name).join('_')}_index`.toLowerCase().substr(0, 63),
+          name: `${joinTable.name}_${descriptors.map((d) => d.name).join('_')}_index`.toLowerCase().substr(0, 63),
           type: null,
         })
       } else {

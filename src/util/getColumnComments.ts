@@ -18,8 +18,8 @@ const queries: any = {
 export default async function (
   knex: Knex,
   tableName: String,
-  schemaName: string
-): Promise<{ column: string, comment: string }[]> {
+  schemaName: string,
+): Promise<Array<{ column: string, comment: string }>> {
   const query = queries[knex.client.config.client]
   if (!query) {
     console.warn(`${knex.client.config.client} doesn't support column comment`)

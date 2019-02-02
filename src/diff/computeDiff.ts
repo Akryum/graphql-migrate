@@ -132,8 +132,8 @@ class Differ {
           (fromCol.foreign.tableName !== toCol.foreign.tableName ||
           fromCol.foreign.columnName !== toCol.foreign.columnName)
         )) {
-          if (fromCol.foreign) this.dropForeignKey(toTable, fromCol)
-          if (toCol.foreign) this.createForeignKey(toTable, toCol)
+          if (fromCol.foreign) { this.dropForeignKey(toTable, fromCol) }
+          if (toCol.foreign) { this.createForeignKey(toTable, toCol) }
         }
       }
 

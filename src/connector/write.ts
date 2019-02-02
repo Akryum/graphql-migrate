@@ -83,7 +83,7 @@ class Writer {
   }
 
   private getColumnNames (names: string[]) {
-    return names.map(name => this.getColumnName(name))
+    return names.map((name) => this.getColumnName(name))
   }
 
   private removeOperation (op: Operation) {

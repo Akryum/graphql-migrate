@@ -38,8 +38,8 @@ order by
 export default async function (
   knex: Knex,
   tableName: String,
-  schemaName: string
-): Promise<{ indexName: string, columnNames: string[], type: string | null }[]> {
+  schemaName: string,
+): Promise<Array<{ indexName: string, columnNames: string[], type: string | null }>> {
   const query = queries[knex.client.config.client]
   if (!query) {
     console.warn(`${knex.client.config.client} column index not supported`)
