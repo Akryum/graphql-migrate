@@ -2560,10 +2560,10 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
   integrity sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==
 
-graphql-annotations@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/graphql-annotations/-/graphql-annotations-0.0.2.tgz#5ab5117f84dc14ad3361d0fd181bf3f9dd0a6583"
-  integrity sha512-0MaLINQYCxW+o73w1ALyUK0aVAu3tyTIwgXFm/T6O/IF7Fu7AgQj2k8bJX998fC3a1la8Ys3shMofeOUNoCJ/Q==
+graphql-annotations@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/graphql-annotations/-/graphql-annotations-0.0.3.tgz#e257b07dceaa7e6fbb7fd73cca191693bd16bf98"
+  integrity sha512-PoBix+oEl4xNAmpJro40DqW9YnKDwFG6saffV7Fj95fffkXJeBIp21xjFTBtUnsJD7lNhL++j2Go8nq5DVzm4w==
   dependencies:
     safe-eval "^0.4.1"
 

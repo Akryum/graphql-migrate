@@ -13,7 +13,7 @@ import { TypeMap } from 'graphql/type/schema'
 import { AbstractDatabase } from './AbstractDatabase'
 import { Table } from './Table'
 import { TableColumn, ForeignKey } from './TableColumn'
-import { parseAnnotations } from 'graphql-annotations'
+import { parseAnnotations, stripAnnotations } from 'graphql-annotations'
 import getColumnTypeFromScalar from './getColumnTypeFromScalar'
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
@@ -95,7 +95,7 @@ class AbstractDatabaseBuilder {
 
     const table: Table = {
       name: annotations.name || this.getName(type.name),
-      comment: type.description || null,
+      comment: stripAnnotations(type.description || null),
       annotations,
       columns: [],
       columnMap: new Map<string, TableColumn>(),
@@ -330,7 +330,7 @@ class AbstractDatabaseBuilder {
 
     return {
       name: columnName,
-      comment: field.description || null,
+      comment: stripAnnotations(field.description || null),
       annotations,
       type,
       args: args || [],
