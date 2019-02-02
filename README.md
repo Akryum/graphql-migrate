@@ -352,7 +352,7 @@ This will create the following tables:
 
 ### Many-to-many
 
-```grahpql
+```graphql
 type User {
   id: ID!
   """
