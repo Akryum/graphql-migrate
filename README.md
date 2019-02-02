@@ -417,7 +417,7 @@ This will create an additional join table:
 | Operation     | pg | mysql | mssql | oracle | sqlite3 |
 | ------------- |:--:|:-----:|:-----:|:------:|:-------:|
 | Read tables   | ✔️ | ❓ | ❓ | ❓ | ❓ |
-| Read table comments | ✔️ | - | - | - | ❌ |
+| Read table comments | ✔️ | ❓ | - | - | ❌ |
 | Read columns  | ✔️ | ❓ | ❓ | ❓ | ❓ |
 | Read column types  | ✔️ | ❓ | ❓ | ❓ | ❓ |
 | Read column comments | ✔️ | - | - | - | ❌ |
