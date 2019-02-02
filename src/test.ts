@@ -1,9 +1,6 @@
 import { buildSchema } from 'graphql'
 import { Config } from 'knex'
-import generateAbstractDatabse from './abstract/generateAbstractDatabase'
-import computeDiff from './diff/computeDiff'
-import read from './connector/read'
-import write from './connector/write'
+import migrate from './migrate'
 
 async function test () {
   const config: Config = {
@@ -31,18 +28,11 @@ async function test () {
   }
   `)
 
-  const existingAdb = await read(config)
+  await migrate(config, schema, {
+    debug: true,
+  })
 
-  const newAdb = await generateAbstractDatabse(schema)
-
-  console.log('BEFORE', JSON.stringify(existingAdb.tables, null, 2))
-  console.log('AFTER', JSON.stringify(newAdb.tables, null, 2))
-
-  const ops = await computeDiff(existingAdb, newAdb)
-
-  console.log('OPERATIONS', ops)
-
-  await write(ops, config)
+  console.log('DONE')
 }
 
 setTimeout(test, 2000)

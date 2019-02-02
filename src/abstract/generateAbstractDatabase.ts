@@ -39,13 +39,21 @@ const INDEX_TYPES = [
   },
 ]
 
-export default async function (schema: GraphQLSchema): Promise<AbstractDatabase> {
-  const builder = new AbstractDatabaseBuilder(schema)
+export default async function (
+  schema: GraphQLSchema,
+  {
+    lowercaseNames = true,
+  } = {}
+): Promise<AbstractDatabase> {
+  const builder = new AbstractDatabaseBuilder(schema, {
+    lowercaseNames,
+  })
   return builder.build()
 }
 
 class AbstractDatabaseBuilder {
   private schema: GraphQLSchema
+  private lowercaseNames: boolean
   private typeMap: TypeMap
   private database: AbstractDatabase
   /** Used to push new intermediary tables after current table */
@@ -53,8 +61,9 @@ class AbstractDatabaseBuilder {
   private currentTable: Table | null = null
   private currentType: string | null = null
 
-  constructor (schema: GraphQLSchema) {
+  constructor (schema: GraphQLSchema, options: any) {
     this.schema = schema
+    this.lowercaseNames = options.lowercaseNames
     this.typeMap = this.schema.getTypeMap()
 
     this.database = {
@@ -76,11 +85,16 @@ class AbstractDatabaseBuilder {
     return this.database
   }
 
+  private getName (name: string) {
+    if (this.lowercaseNames) return name.toLowerCase()
+    return name
+  }
+
   private buildTable (type: GraphQLObjectType) {
     const annotations: any = parseAnnotations('db', type.description || null)
 
     const table: Table = {
-      name: annotations.name || type.name,
+      name: annotations.name || this.getName(type.name),
       comment: type.description || null,
       annotations,
       columns: [],
@@ -126,7 +140,7 @@ class AbstractDatabaseBuilder {
     }
 
     const notNull = isNonNullType(field.type)
-    let columnName: string = annotations.name || field.name
+    let columnName: string = annotations.name || this.getName(field.name)
     let type: string
     let args: any[]
     let foreign: ForeignKey | null = null
@@ -144,11 +158,11 @@ class AbstractDatabaseBuilder {
     // Enum
     } else if (isEnumType(fieldType)) {
       type = 'enum'
-      args = [fieldType.getValues().map((v) => v.name), { enumName: fieldType.name }]
+      args = [fieldType.getValues().map((v) => v.name), { enumName: annotations.enumName || this.getName(fieldType.name) }]
 
     // Object
     } else if (isObjectType(fieldType)) {
-      columnName = annotations.name || `${field.name}_foreign`
+      columnName = annotations.name || this.getName(`${field.name}_foreign`)
       const foreignType = this.typeMap[fieldType.name]
       if (!foreignType) {
         console.warn(`Foreign type ${fieldType.name} not found on field ${field.name}.`)
@@ -207,16 +221,16 @@ class AbstractDatabaseBuilder {
         if (!isListType(foreignFieldType)) { return null }
 
         // Create join table for many-to-many
-        const defaultName = [
+        const defaultName = this.getName([
           `${this.currentType}_${field.name}`,
           `${foreignType.name}_${foreignField.name}`,
-        ].sort().join('_JOIN_')
+        ].sort().join('_join_'))
         const tableName: string = annotations.table || defaultName
         let joinTable = this.database.tableMap.get(tableName) || null
         if (!joinTable) {
           joinTable = {
             name: tableName,
-            comment: `Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
+            comment: annotations.tableComment || `[Auto] Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
             annotations: {},
             columns: [],
             columnMap: new Map(),
