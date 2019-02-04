@@ -40,6 +40,7 @@ Instantly create or update a SQL database from a GraphQL API schema.
 - [CLI Usage](#cli-usage)
 - [Cookbook](#cookbook)
 - [Database compatibility](#database-compatibility)
+- [Roadmap](https://github.com/Akryum/graphql-migrate/projects/1)
 
 ## Installation
 
