@@ -4,7 +4,7 @@
   "description": "Create & migrate Databases from GraphQL Schema",
   "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
   "scripts": {
-    "dev": "nodepack-service dev",
+    "dev": "nodepack-service build --watch",
     "build": "nodepack-service build",
     "tslint": "nodepack-service lint",
     "eslint": "eslint {src,tests}/**/*.ts",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@nodepack/plugin-typescript": "^0.0.2",
-    "@nodepack/service": "^0.0.3",
+    "@nodepack/service": "^0.0.4",
     "@types/graphql": "^14.0.5",
     "@types/jest": "^23.3.13",
     "@typescript-eslint/eslint-plugin": "^1.1.1",

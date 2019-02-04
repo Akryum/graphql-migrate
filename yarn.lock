@@ -224,10 +224,10 @@
     tslint "^5.12.1"
     typescript "^3.2.4"
 
-"@nodepack/service@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@nodepack/service/-/service-0.0.3.tgz#fc30523107fe805f1bff1ead94cc5bd1b23495e2"
-  integrity sha512-Y3CJ89CjX9iBwftFLEx2NCaA5rPFZ0GlsuRy1We+zvvPmzvBpit2ENQg8Uw17ti4Dlko32xuDU9LFajCkzH0bw==
+"@nodepack/service@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@nodepack/service/-/service-0.0.4.tgz#17212408f72cdffb6e11fa804235f1d507530072"
+  integrity sha512-dkFocZ+gMLj78juz9XnqD8H7WJcZ2kvpedH0UjWfl0pwdb1NdHkiwlC4R6QAa4pmfS9+o5t3opPsjTULcqj8kA==
   dependencies:
     "@nodepack/app-migrator" "^0.0.3"
     "@nodepack/env-check" "^0.0.2"
