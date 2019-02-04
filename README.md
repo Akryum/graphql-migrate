@@ -1,8 +1,15 @@
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Akryum/graphql-migrate/master/graphql-migrate.png" alt="Logo">
+</p>
+
 # grahpql-migrate
 
 [![circleci](https://img.shields.io/circleci/project/github/Akryum/graphql-migrate/master.svg)](https://circleci.com/gh/Akryum/graphql-migrate)
 
 Instantly create or update a SQL database from a GraphQL API schema.
+
+<br>
 
 <p align="center">
   <a href="https://www.patreon.com/akryum" target="_blank">
