@@ -7,13 +7,13 @@ export interface WriteParams {
   tap: (
     type: OperationType,
     event: 'before' | 'after',
-    callback: WriteCallback
+    callback: WriteCallback,
   ) => void
 }
 
 export default abstract class MigratePlugin {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  write (params: WriteParams): void {
+  public write (params: WriteParams): void {
     // Re-implement
   }
 }

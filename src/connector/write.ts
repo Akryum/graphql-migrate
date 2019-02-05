@@ -64,7 +64,7 @@ class Writer {
     schemaName = 'public',
     tablePrefix = '',
     columnPrefix = '',
-    plugins: MigratePlugin[]
+    plugins: MigratePlugin[],
   ) {
     this.operations = operations.slice()
     this.schemaName = schemaName

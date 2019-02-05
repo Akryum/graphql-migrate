@@ -51,7 +51,7 @@ export const defaultOptions: Options = {
 export default async function (
   config: Config,
   schema: GraphQLSchema,
-  options: Options = {}
+  options: Options = {},
 ): Promise<Operation[]> {
   // Default options
   options = {
