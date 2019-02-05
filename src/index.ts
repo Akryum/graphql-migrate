@@ -3,3 +3,4 @@ export { default as generateAbstractDatabase } from './abstract/generateAbstract
 export { default as computeDiff } from './diff/computeDiff'
 export { default as read } from './connector/read'
 export { default as write } from './connector/write'
+export { default as MigratePlugin, WriteParams } from './plugin/MigratePlugin'

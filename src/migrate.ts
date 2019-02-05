@@ -4,6 +4,8 @@ import read from './connector/read'
 import generateAbstractDatabase from './abstract/generateAbstractDatabase'
 import computeDiff from './diff/computeDiff'
 import write from './connector/write'
+import MigratePlugin from './plugin/MigratePlugin'
+import { Operation } from './diff/Operation'
 
 export interface Options {
   /**
@@ -27,6 +29,10 @@ export interface Options {
    */
   lowercaseNames?: boolean
   /**
+   * List of graphql-migrate plugins
+   */
+  plugins?: MigratePlugin[],
+  /**
    * Display debug information
    */
   debug?: boolean
@@ -38,10 +44,15 @@ export const defaultOptions: Options = {
   dbColumnPrefix: '',
   updateComments: false,
   lowercaseNames: true,
+  plugins: [],
   debug: false,
 }
 
-export default async function (config: Config, schema: GraphQLSchema, options: Options = {}): Promise<void> {
+export default async function (
+  config: Config,
+  schema: GraphQLSchema,
+  options: Options = {}
+): Promise<Operation[]> {
   // Default options
   options = {
     ...defaultOptions,
@@ -82,5 +93,8 @@ export default async function (config: Config, schema: GraphQLSchema, options: O
     options.dbSchemaName,
     options.dbTablePrefix,
     options.dbColumnPrefix,
+    options.plugins,
   )
+
+  return ops
 }

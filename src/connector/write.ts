@@ -1,8 +1,9 @@
+import Knex, { Config, CreateTableBuilder, TableBuilder } from 'knex'
 // eslint-disable-next-line import/no-duplicates
 import * as Operations from '../diff/Operation'
 // eslint-disable-next-line import/no-duplicates
 import { Operation, OperationType } from '../diff/Operation'
-import Knex, { Config, CreateTableBuilder, TableBuilder } from 'knex'
+import MigratePlugin, { WriteCallback } from '../plugin/MigratePlugin'
 
 const CREATE_TABLE_CHILD_OPS: OperationType[] = [
   'table.comment.set',
@@ -27,8 +28,22 @@ const ALTER_TABLE_CHILD_OPS: OperationType[] = [
  * @param {string} tablePrefix Table name prefix: `<prefix><tableName>`
  * @param {string} columnPrefix Column name prefix: `<prefix><columnName>`
  */
-export default async function (operations: Operation[], config: Config, schemaName = 'public', tablePrefix = '', columnPrefix = '') {
-  const writer = new Writer(operations, config, schemaName, tablePrefix, columnPrefix)
+export default async function (
+  operations: Operation[],
+  config: Config,
+  schemaName = 'public',
+  tablePrefix = '',
+  columnPrefix = '',
+  plugins: MigratePlugin[] = [],
+) {
+  const writer = new Writer(
+    operations,
+    config,
+    schemaName,
+    tablePrefix,
+    columnPrefix,
+    plugins,
+  )
   return writer.write()
 }
 
@@ -37,19 +52,31 @@ class Writer {
   private schemaName: string
   private tablePrefix: string
   private columnPrefix: string
+  private plugins: MigratePlugin[]
   private knex: Knex
+  private hooks: { [key: string]: WriteCallback[] } = {}
   // @ts-ignore
   private trx: Knex.Transaction
 
-  constructor (operations: Operation[], config: Config, schemaName = 'public', tablePrefix = '', columnPrefix = '') {
-    this.operations = operations
+  constructor (
+    operations: Operation[],
+    config: Config,
+    schemaName = 'public',
+    tablePrefix = '',
+    columnPrefix = '',
+    plugins: MigratePlugin[]
+  ) {
+    this.operations = operations.slice()
     this.schemaName = schemaName
     this.tablePrefix = tablePrefix
     this.columnPrefix = columnPrefix
+    this.plugins = plugins
     this.knex = Knex(config)
   }
 
   public async write () {
+    await this.applyPlugins()
+
     await this.knex.transaction(async (trx) => {
       this.trx = trx
       let op: Operation | undefined
@@ -59,12 +86,16 @@ class Writer {
           await this.createTable(op as Operations.TableCreateOperation)
           break
         case 'table.rename':
+          await this.callHook(op, 'before')
           const trop = (op as Operations.TableRenameOperation)
           await this.trx.schema.withSchema(this.schemaName).renameTable(this.getTableName(trop.fromName), this.getTableName(trop.toName))
+          await this.callHook(op, 'after')
           break
         case 'table.drop':
+          await this.callHook(op, 'before')
           const tdop = (op as Operations.TableDropOperation)
           await this.trx.schema.withSchema(this.schemaName).dropTable(this.getTableName(tdop.table))
+          await this.callHook(op, 'after')
           break
         default:
           this.operations.splice(0, 0, op)
@@ -91,12 +122,38 @@ class Writer {
     if (index !== -1) { this.operations.splice(index, 1) }
   }
 
+  private async applyPlugins () {
+    this.hooks = {}
+    for (const plugin of this.plugins) {
+      plugin.write({
+        tap: (type, event, callback) => {
+          const key = `${type}.${event}`
+          const list = this.hooks[key] = this.hooks[key] || []
+          list.push(callback)
+        },
+      })
+    }
+  }
+
+  private async callHook (op: Operation, event: 'before' | 'after') {
+    const list = this.hooks[`${op.type}.${event}`]
+    if (list) {
+      for (const callback of list) {
+        await callback(op, this.trx)
+      }
+    }
+  }
+
   private async createTable (op: Operations.TableCreateOperation) {
-    await this.trx.schema.withSchema(this.schemaName).createTable(this.getTableName(op.table), (table) => {
-      const childOps: Operation[] = this.operations.filter(
-        (child) => CREATE_TABLE_CHILD_OPS.includes(child.type) &&
-        (child as any).table === op.table,
-      )
+    await this.callHook(op, 'before')
+    const childOps: Operation[] = this.operations.filter(
+      (child) => CREATE_TABLE_CHILD_OPS.includes(child.type) &&
+      (child as any).table === op.table,
+    )
+    for (const childOp of childOps) {
+      await this.callHook(childOp, 'before')
+    }
+    await this.trx.schema.withSchema(this.schemaName).createTable(this.getTableName(op.table), async (table) => {
       for (const childOp of childOps) {
         switch (childOp.type) {
         case 'column.create':
@@ -130,6 +187,10 @@ class Writer {
         this.removeOperation(childOp)
       }
     })
+    for (const childOp of childOps) {
+      await this.callHook(childOp, 'after')
+    }
+    await this.callHook(op, 'after')
   }
 
   private createColumn (op: Operations.ColumnCreateOperation, table: CreateTableBuilder) {
@@ -154,11 +215,14 @@ class Writer {
   }
 
   private async alterTable (tableName: string) {
-    await this.trx.schema.withSchema(this.schemaName).alterTable(this.getTableName(tableName), (table) => {
-      const childOps = this.operations.filter(
-        (child) => ALTER_TABLE_CHILD_OPS.includes(child.type) &&
-        (child as any).table === tableName,
-      )
+    const childOps = this.operations.filter(
+      (child) => ALTER_TABLE_CHILD_OPS.includes(child.type) &&
+      (child as any).table === tableName,
+    )
+    for (const childOp of childOps) {
+      await this.callHook(childOp, 'before')
+    }
+    await this.trx.schema.withSchema(this.schemaName).alterTable(this.getTableName(tableName), async (table) => {
       for (const childOp of childOps) {
         switch (childOp.type) {
         case 'table.comment.set':
@@ -217,6 +281,9 @@ class Writer {
         this.removeOperation(childOp)
       }
     })
+    for (const childOp of childOps) {
+      await this.callHook(childOp, 'after')
+    }
   }
 
   private alterColumn (table: TableBuilder, op: Operations.ColumnAlterOperation) {
