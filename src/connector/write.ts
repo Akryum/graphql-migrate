@@ -88,7 +88,8 @@ class Writer {
         case 'table.rename':
           await this.callHook(op, 'before')
           const trop = (op as Operations.TableRenameOperation)
-          await this.trx.schema.withSchema(this.schemaName).renameTable(this.getTableName(trop.fromName), this.getTableName(trop.toName))
+          await this.trx.schema.withSchema(this.schemaName)
+            .renameTable(this.getTableName(trop.fromName), this.getTableName(trop.toName))
           await this.callHook(op, 'after')
           break
         case 'table.drop':

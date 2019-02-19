@@ -37,7 +37,7 @@ order by
 
 export default async function (
   knex: Knex,
-  tableName: String,
+  tableName: string,
   schemaName: string,
 ): Promise<Array<{ indexName: string, columnNames: string[], type: string | null }>> {
   const query = queries[knex.client.config.client]

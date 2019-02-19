@@ -22,7 +22,7 @@ where tc.constraint_type = 'FOREIGN KEY' and tc.table_name = ? and tc.table_sche
 
 export default async function (
   knex: Knex,
-  tableName: String,
+  tableName: string,
   schemaName: string,
 ): Promise<Array<{ column: string, foreignTable: string, foreignColumn: string }>> {
   const query = queries[knex.client.config.client]

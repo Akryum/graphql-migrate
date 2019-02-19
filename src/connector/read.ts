@@ -17,7 +17,12 @@ import getUniques from '../util/getUniques'
  * @param {string} tablePrefix Table name prefix: `<prefix><tableName>`
  * @param {string} columnPrefix Column name prefix: `<prefix><columnName>`
  */
-export default function read (config: Config, schemaName = 'public', tablePrefix = '', columnPrefix = ''): Promise<AbstractDatabase> {
+export default function read (
+  config: Config,
+  schemaName = 'public',
+  tablePrefix = '',
+  columnPrefix = '',
+): Promise<AbstractDatabase> {
   const reader = new Reader(config, schemaName, tablePrefix, columnPrefix)
   return reader.read()
 }

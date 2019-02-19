@@ -17,7 +17,7 @@ const queries: any = {
 
 export default async function (
   knex: Knex,
-  tableName: String,
+  tableName: string,
   schemaName: string,
 ): Promise<Array<{ column: string, comment: string }>> {
   const query = queries[knex.client.config.client]
