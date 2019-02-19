@@ -76,7 +76,7 @@ export default function (
   if (annotations.type === 'timestamp') {
     return {
       type: 'timestamp',
-      args: [annotations.userTz, annotations.precision],
+      args: [annotations.useTz, annotations.precision],
     }
   }
 
