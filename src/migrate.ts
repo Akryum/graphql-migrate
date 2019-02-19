@@ -1,7 +1,7 @@
 import { Config } from 'knex'
 import { GraphQLSchema } from 'graphql'
 import read from './connector/read'
-import generateAbstractDatabase from './abstract/generateAbstractDatabase'
+import generateAbstractDatabase, { ScalarMap } from './abstract/generateAbstractDatabase'
 import computeDiff from './diff/computeDiff'
 import write from './connector/write'
 import MigratePlugin from './plugin/MigratePlugin'
@@ -29,6 +29,10 @@ export interface Options {
    */
   lowercaseNames?: boolean
   /**
+   * Custom Scalar mapping
+   */
+  scalarMap?: ScalarMap | null
+  /**
    * List of graphql-migrate plugins
    */
   plugins?: MigratePlugin[],
@@ -44,6 +48,7 @@ export const defaultOptions: Options = {
   dbColumnPrefix: '',
   updateComments: false,
   lowercaseNames: true,
+  scalarMap: null,
   plugins: [],
   debug: false,
 }
@@ -74,6 +79,7 @@ export default async function (
   // Generate new
   const newAdb = await generateAbstractDatabase(schema, {
     lowercaseNames: options.lowercaseNames,
+    scalarMap: options.scalarMap,
   })
   if (options.debug) {
     console.log('BEFORE', JSON.stringify(existingAdb.tables, null, 2))

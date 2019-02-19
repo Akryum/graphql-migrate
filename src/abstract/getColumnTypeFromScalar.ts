@@ -2,8 +2,14 @@ import { GraphQLField, GraphQLScalarType } from 'graphql'
 import { TableColumnType } from './TableColumn'
 import { parseAnnotations } from 'graphql-annotations'
 
-interface TableColumnTypeDescriptor {
-  type: TableColumnType
+export interface TableColumnTypeDescriptor {
+  /**
+   * Knex column builder function name.
+   */
+  type: TableColumnType | string
+  /**
+   * Builder function arguments.
+   */
   args: any[]
 }
 

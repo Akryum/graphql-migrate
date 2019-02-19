@@ -394,6 +394,32 @@ describe('create abstract database', () => {
     expect(colNames.type).toBe('json')
   })
 
+  test('custom scalar map', async () => {
+    const schema = buildSchema(`
+      type User {
+        name: String
+        nickname: String
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema, {
+      scalarMap: (field) => {
+        if (field.name === 'name') {
+          return {
+            type: 'text',
+            args: [],
+          }
+        }
+        return null
+      },
+    })
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.columns.length).toBe(2)
+    const [colName, colNickname] = User.columns
+    expect(colName.type).toBe('text')
+    expect(colNickname.type).toBe('string')
+  })
+
   test('sandbox', async () => {
     const schema = buildSchema(`
       scalar Date

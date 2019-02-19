@@ -8,13 +8,14 @@ import {
   isEnumType,
   isListType,
   isNonNullType,
+  GraphQLScalarType,
 } from 'graphql'
 import { TypeMap } from 'graphql/type/schema'
 import { AbstractDatabase } from './AbstractDatabase'
 import { Table } from './Table'
 import { TableColumn, ForeignKey } from './TableColumn'
 import { parseAnnotations, stripAnnotations } from 'graphql-annotations'
-import getColumnTypeFromScalar from './getColumnTypeFromScalar'
+import getColumnTypeFromScalar, { TableColumnTypeDescriptor } from './getColumnTypeFromScalar'
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
@@ -39,21 +40,34 @@ const INDEX_TYPES = [
   },
 ]
 
+export type ScalarMap = (
+  field: GraphQLField<any, any>,
+  scalarType: GraphQLScalarType | null,
+  annotations: any,
+) => TableColumnTypeDescriptor | null
+
+export interface GenerateAbstractDatabaseOptions {
+  lowercaseNames?: boolean
+  scalarMap?: ScalarMap | null
+}
+
+export const defaultOptions: GenerateAbstractDatabaseOptions = {
+  lowercaseNames: true,
+  scalarMap: null,
+}
+
 export default async function (
   schema: GraphQLSchema,
-  {
-    lowercaseNames = true,
-  } = {},
+  options: GenerateAbstractDatabaseOptions = defaultOptions,
 ): Promise<AbstractDatabase> {
-  const builder = new AbstractDatabaseBuilder(schema, {
-    lowercaseNames,
-  })
+  const builder = new AbstractDatabaseBuilder(schema, options)
   return builder.build()
 }
 
 class AbstractDatabaseBuilder {
   private schema: GraphQLSchema
   private lowercaseNames: boolean
+  private scalarMap: ScalarMap | null
   private typeMap: TypeMap
   private database: AbstractDatabase
   /** Used to push new intermediary tables after current table */
@@ -61,9 +75,10 @@ class AbstractDatabaseBuilder {
   private currentTable: Table | null = null
   private currentType: string | null = null
 
-  constructor (schema: GraphQLSchema, options: any) {
+  constructor (schema: GraphQLSchema, options: GenerateAbstractDatabaseOptions) {
     this.schema = schema
-    this.lowercaseNames = options.lowercaseNames
+    this.lowercaseNames = options.lowercaseNames as boolean
+    this.scalarMap = options.scalarMap as ScalarMap | null
     this.typeMap = this.schema.getTypeMap()
 
     this.database = {
@@ -147,7 +162,13 @@ class AbstractDatabaseBuilder {
 
     // Scalar
     if (isScalarType(fieldType) || annotations.type) {
-      const descriptor = getColumnTypeFromScalar(field, isScalarType(fieldType) ? fieldType : null, annotations)
+      let descriptor
+      if (this.scalarMap) {
+        descriptor = this.scalarMap(field, isScalarType(fieldType) ? fieldType : null, annotations)
+      }
+      if (!descriptor) {
+        descriptor = getColumnTypeFromScalar(field, isScalarType(fieldType) ? fieldType : null, annotations)
+      }
       if (!descriptor) {
         console.warn(`Unsupported type ${fieldType} on field ${field.name}.`)
         return null

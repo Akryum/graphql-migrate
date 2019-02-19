@@ -39,6 +39,7 @@ Instantly create or update a SQL database from a GraphQL API schema.
 - [Programmatic Usage](#programmatic-usage)
 - [CLI Usage](#cli-usage)
 - [Cookbook](#cookbook)
+- [Custom Scalar Mapping](#custom-scalar-mapping)
 - [Custom logic with plugins](#custom-logic-with-plugins)
 - [Database compatibility](#database-compatibility)
 - [Roadmap](https://github.com/Akryum/graphql-migrate/projects/1)
@@ -428,7 +429,59 @@ This will create an additional join table:
 }
 ```
 
-### Custom logic with Plugins
+## Custom Scalar Mapping
+
+To customize the scalar mapping, you can provide a function on the `scalarMap` option that gets field information and that returns a `TableColumnDescriptor` or `null`. Here is its signature:
+
+```ts
+type ScalarMap = (
+  field: GraphQLField<any, any>,
+  scalarType: GraphQLScalarType | null,
+  annotations: any,
+) => TableColumnTypeDescriptor | null
+```
+
+Here is the `TableColumnTypeDescriptor` interface:
+
+```ts
+interface TableColumnTypeDescriptor {
+  /**
+   * Knex column builder function name.
+   */
+  type: string
+  /**
+   * Builder function arguments.
+   */
+  args: any[]
+}
+```
+
+Example:
+
+```js
+migrate(config, schema, {
+  scalarMap: (field, scalarType, annotations) => {
+    if (scalarType && scalarType.name === 'Timestamp') {
+      return {
+        type: 'timestamp',
+        // useTz, precision
+        args: [true, undefined],
+      }
+    }
+
+    if (field.name === 'id' || annotations.type === 'uuid') {
+      return {
+        type: 'uuid',
+        args: [],
+      }
+    }
+
+    return null
+  }
+})
+```
+
+## Custom logic with Plugins
 
 It's possible to write custom queries to be executed during migrations using Plugins.
 
