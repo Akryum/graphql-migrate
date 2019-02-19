@@ -76,7 +76,7 @@ class AbstractDatabaseBuilder {
     for (const key in this.typeMap) {
       const type = this.typeMap[key]
       // Tables
-      if (isObjectType(type) && type.astNode && !ROOT_TYPES.includes(type.name)) {
+      if (isObjectType(type) && !type.name.startsWith('__') && !ROOT_TYPES.includes(type.name)) {
         this.buildTable(type)
       }
     }
