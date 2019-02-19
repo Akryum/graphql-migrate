@@ -7,7 +7,11 @@ interface TableColumnTypeDescriptor {
   args: any[]
 }
 
-export default function (field: GraphQLField<any, any>, scalarType: GraphQLScalarType | null = null, annotations: any = null): TableColumnTypeDescriptor | null {
+export default function (
+  field: GraphQLField<any, any>,
+  scalarType: GraphQLScalarType | null = null,
+  annotations: any = null,
+): TableColumnTypeDescriptor | null {
   if (!annotations) {
     annotations = parseAnnotations('db', field.description || null)
   }
