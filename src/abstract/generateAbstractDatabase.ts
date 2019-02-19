@@ -170,7 +170,7 @@ class AbstractDatabaseBuilder {
         descriptor = getColumnTypeFromScalar(field, isScalarType(fieldType) ? fieldType : null, annotations)
       }
       if (!descriptor) {
-        console.warn(`Unsupported type ${fieldType} on field ${field.name}.`)
+        console.warn(`Unsupported type ${fieldType} on field ${this.currentType}.${field.name}.`)
         return null
       }
       type = descriptor.type
@@ -186,11 +186,11 @@ class AbstractDatabaseBuilder {
       columnName = annotations.name || this.getName(`${field.name}_foreign`)
       const foreignType = this.typeMap[fieldType.name]
       if (!foreignType) {
-        console.warn(`Foreign type ${fieldType.name} not found on field ${field.name}.`)
+        console.warn(`Foreign type ${fieldType.name} not found on field ${this.currentType}.${field.name}.`)
         return null
       }
       if (!isObjectType(foreignType)) {
-        console.warn(`Foreign type ${fieldType.name} is not Object type on field ${field.name}.`)
+        console.warn(`Foreign type ${fieldType.name} is not Object type on field ${this.currentType}.${field.name}.`)
         return null
       }
       const foreignKey: string = annotations.foreign || 'id'
@@ -221,11 +221,11 @@ class AbstractDatabaseBuilder {
         const onSameType = this.currentType === ofType.name
         const foreignType = this.typeMap[ofType.name]
         if (!foreignType) {
-          console.warn(`Foreign type ${ofType.name} not found on field ${field.name}.`)
+          console.warn(`Foreign type ${ofType.name} not found on field ${this.currentType}.${field.name}.`)
           return null
         }
         if (!isObjectType(foreignType)) {
-          console.warn(`Foreign type ${ofType.name} is not Object type on field ${field.name}.`)
+          console.warn(`Foreign type ${ofType.name} is not Object type on field ${this.currentType}.${field.name}.`)
           return null
         }
 
@@ -267,7 +267,7 @@ class AbstractDatabaseBuilder {
           const key = annotations.manyToMany || 'id'
           const foreignField = foreignType.getFields()[key]
           if (!foreignField) {
-            console.warn(`Foreign field ${key} on type ${ofType.name} not found on field ${field.name}.`)
+            console.warn(`Foreign field ${key} on type ${ofType.name} not found on field ${this.currentType}.${field.name}.`)
             return null
           }
           const descriptor = this.getFieldDescriptor(foreignField, ofType)
@@ -297,13 +297,13 @@ class AbstractDatabaseBuilder {
           type: null,
         })
       } else {
-        console.warn(`Unsupported Scalar/Enum list on field ${field.name}. Use @db.type: "json"`)
+        console.warn(`Unsupported Scalar/Enum list on field ${this.currentType}.${field.name}. Use @db.type: "json"`)
       }
       return null
 
     // Unsupported
     } else {
-      console.warn(`Field ${field.name} of type ${fieldType ? fieldType.toString() : '*unknown*'} not supported. Consider specifying column type with:
+      console.warn(`Field ${this.currentType}.${field.name} of type ${fieldType ? fieldType.toString() : '*unknown*'} not supported. Consider specifying column type with:
       """
       @db.type: "text"
       """
