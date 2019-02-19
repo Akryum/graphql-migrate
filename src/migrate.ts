@@ -33,6 +33,10 @@ export interface Options {
    */
   scalarMap?: ScalarMap | null
   /**
+   * Map scalar/enum lists to json column type by default.
+   */
+  mapListToJson?: boolean
+  /**
    * List of graphql-migrate plugins
    */
   plugins?: MigratePlugin[],
@@ -49,6 +53,7 @@ export const defaultOptions: Options = {
   updateComments: false,
   lowercaseNames: true,
   scalarMap: null,
+  mapListToJson: true,
   plugins: [],
   debug: false,
 }

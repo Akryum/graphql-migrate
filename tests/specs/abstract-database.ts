@@ -420,6 +420,22 @@ describe('create abstract database', () => {
     expect(colNickname.type).toBe('string')
   })
 
+  test('map lists to json', async () => {
+    const schema = buildSchema(`
+      type User {
+        names: [String]
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema, {
+      mapListToJson: true,
+    })
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.columns.length).toBe(1)
+    const [colNames] = User.columns
+    expect(colNames.type).toBe('json')
+  })
+
   test('sandbox', async () => {
     const schema = buildSchema(`
       scalar Date

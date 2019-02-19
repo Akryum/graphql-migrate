@@ -350,6 +350,19 @@ type User {
 }
 ```
 
+You can set the `mapListToJson` option to automatically map scalar and enum lists to JSON:
+
+```js
+const schema = buildSchema(`
+  type User {
+    names: [String]
+  }
+`)
+const adb = await generateAbstractDatabase(schema, {
+  mapListToJson: true,
+})
+```
+
 ### Foreign key
 
 ```graphql

@@ -49,6 +49,7 @@ export type ScalarMap = (
 export interface GenerateAbstractDatabaseOptions {
   lowercaseNames?: boolean
   scalarMap?: ScalarMap | null
+  mapListToJson?: boolean
 }
 
 export const defaultOptions: GenerateAbstractDatabaseOptions = {
@@ -68,6 +69,7 @@ class AbstractDatabaseBuilder {
   private schema: GraphQLSchema
   private lowercaseNames: boolean
   private scalarMap: ScalarMap | null
+  private mapListToJson: boolean
   private typeMap: TypeMap
   private database: AbstractDatabase
   /** Used to push new intermediary tables after current table */
@@ -77,8 +79,9 @@ class AbstractDatabaseBuilder {
 
   constructor (schema: GraphQLSchema, options: GenerateAbstractDatabaseOptions) {
     this.schema = schema
-    this.lowercaseNames = options.lowercaseNames as boolean
+    this.lowercaseNames = options.lowercaseNames || defaultOptions.lowercaseNames as boolean
     this.scalarMap = options.scalarMap as ScalarMap | null
+    this.mapListToJson = options.mapListToJson || defaultOptions.mapListToJson as boolean
     this.typeMap = this.schema.getTypeMap()
 
     this.database = {
@@ -296,11 +299,14 @@ class AbstractDatabaseBuilder {
           name: `${joinTable.name}_${descriptors.map((d) => d.name).join('_')}_index`.toLowerCase().substr(0, 63),
           type: null,
         })
+        return null
+      } else if (this.mapListToJson) {
+        type = 'json'
+        args = []
       } else {
         console.warn(`Unsupported Scalar/Enum list on field ${this.currentType}.${field.name}. Use @db.type: "json"`)
+        return null
       }
-      return null
-
     // Unsupported
     } else {
       console.warn(`Field ${this.currentType}.${field.name} of type ${fieldType ? fieldType.toString() : '*unknown*'} not supported. Consider specifying column type with:
