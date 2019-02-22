@@ -15,8 +15,8 @@ describe('sortOps', () => {
       { type: 'table.unique.drop' },
       { type: 'table.index.drop' },
       { type: 'table.drop' },
-      { type: 'column.create' },
       { type: 'table.create' },
+      { type: 'column.create' },
     ])
   })
 })
