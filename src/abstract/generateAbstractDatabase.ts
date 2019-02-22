@@ -16,6 +16,7 @@ import { Table } from './Table'
 import { TableColumn, ForeignKey } from './TableColumn'
 import { parseAnnotations, stripAnnotations } from 'graphql-annotations'
 import getColumnTypeFromScalar, { TableColumnTypeDescriptor } from './getColumnTypeFromScalar'
+import { escapeComment } from '../util/comments'
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
@@ -113,7 +114,7 @@ class AbstractDatabaseBuilder {
 
     const table: Table = {
       name: annotations.name || this.getName(type.name),
-      comment: stripAnnotations(type.description || null),
+      comment: escapeComment(stripAnnotations(type.description || null)),
       annotations,
       columns: [],
       columnMap: new Map<string, TableColumn>(),
@@ -255,7 +256,7 @@ class AbstractDatabaseBuilder {
         if (!joinTable) {
           joinTable = {
             name: tableName,
-            comment: annotations.tableComment || `[Auto] Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
+            comment: escapeComment(annotations.tableComment) || `[Auto] Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
             annotations: {},
             columns: [],
             columnMap: new Map(),
@@ -358,7 +359,7 @@ class AbstractDatabaseBuilder {
 
     return {
       name: columnName,
-      comment: stripAnnotations(field.description || null),
+      comment: escapeComment(stripAnnotations(field.description || null)),
       annotations,
       type,
       args: args || [],
