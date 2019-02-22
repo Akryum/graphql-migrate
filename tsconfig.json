@@ -9,9 +9,6 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "lib": [
       "dom",
       "esnext",
