@@ -19,6 +19,9 @@ const ALTER_TABLE_CHILD_OPS: OperationType[] = [
   'column.rename',
   'column.alter',
   'column.drop',
+  'table.foreign.drop',
+  'table.index.drop',
+  'table.unique.drop',
 ]
 
 /**
