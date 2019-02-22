@@ -124,6 +124,16 @@ class Reader {
         columns: this.getColumnNames(u.columnNames),
         name: u.indexName,
       }))
+
+      // Deduplicate unique index
+      for (const unique of table.uniques) {
+        for (let i = 0; i < table.indexes.length; i++) {
+          if (unique.name === table.indexes[i].name) {
+            table.indexes.splice(i, 1)
+            break
+          }
+        }
+      }
     }
 
     return this.database
