@@ -4,6 +4,7 @@ import * as Operations from '../diff/Operation'
 // eslint-disable-next-line import/no-duplicates
 import { Operation, OperationType } from '../diff/Operation'
 import MigratePlugin, { WriteCallback } from '../plugin/MigratePlugin'
+import { sortOps } from '../util/sortOps'
 
 const CREATE_TABLE_CHILD_OPS: OperationType[] = [
   'table.comment.set',
@@ -69,7 +70,7 @@ class Writer {
     columnPrefix = '',
     plugins: MigratePlugin[],
   ) {
-    this.operations = operations.slice()
+    this.operations = operations.slice().sort(sortOps)
     this.schemaName = schemaName
     this.tablePrefix = tablePrefix
     this.columnPrefix = columnPrefix
