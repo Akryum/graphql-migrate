@@ -134,6 +134,25 @@ type User {
 }
 ```
 
+### Skip table or field
+
+```graphql
+"""
+@db.skip
+"""
+type MutationResult {
+  success: Boolean!
+}
+
+type OtherType {
+  id: ID!
+  """
+  @db.skip
+  """
+  computedField: String
+}
+```
+
 ### Rename
 
 ```graphql

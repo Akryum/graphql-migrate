@@ -112,6 +112,10 @@ class AbstractDatabaseBuilder {
   private buildTable (type: GraphQLObjectType) {
     const annotations: any = parseAnnotations('db', type.description || null)
 
+    if (annotations.skip) {
+      return
+    }
+
     const table: Table = {
       name: annotations.name || this.getName(type.name),
       comment: escapeComment(stripAnnotations(type.description || null)),
@@ -154,6 +158,11 @@ class AbstractDatabaseBuilder {
     fieldType: GraphQLOutputType | null = null,
   ): TableColumn | null {
     const annotations: any = parseAnnotations('db', field.description || null)
+
+    if (annotations.skip) {
+      return null
+    }
+
     if (!fieldType) {
       fieldType = isNonNullType(field.type) ? field.type.ofType : field.type
     }

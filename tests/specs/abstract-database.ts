@@ -47,6 +47,39 @@ describe('create abstract database', () => {
     expect(colName.comment).toBe('Display name.')
   })
 
+  test('skip table', async () => {
+    const schema = buildSchema(`
+      """
+      @db.skip
+      """
+      type User {
+        id: ID!
+        name: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(0)
+  })
+
+  test('skip field', async () => {
+    const schema = buildSchema(`
+      type User {
+        id: ID!
+        """
+        @db.skip
+        """
+        name: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.name).toBe('user')
+    expect(User.columns.length).toBe(1)
+    const [colId] = User.columns
+    expect(colId.name).toBe('id')
+  })
+
   test('not null', async () => {
     const schema = buildSchema(`
       type User {
