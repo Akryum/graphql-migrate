@@ -6,6 +6,8 @@ const priority: OperationType[] = [
   'table.index.drop',
   'column.drop',
   'table.drop',
+  'table.create',
+  'column.create',
 ]
 
 function getPriority (op: Operation) {
