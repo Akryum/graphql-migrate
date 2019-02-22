@@ -218,7 +218,8 @@ class AbstractDatabaseBuilder {
 
     // List
     } else if (isListType(fieldType) && this.currentTable) {
-      const ofType = fieldType.ofType
+      let ofType = fieldType.ofType
+      ofType = isNonNullType(ofType) ? ofType.ofType : ofType
       if (isObjectType(ofType)) {
         // Foreign Type
         const onSameType = this.currentType === ofType.name

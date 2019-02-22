@@ -292,7 +292,7 @@ describe('create abstract database', () => {
     const schema = buildSchema(`
       type User {
         id: ID!
-        messages: [Message]
+        messages: [Message!]!
       }
 
       type Message {
@@ -322,7 +322,7 @@ describe('create abstract database', () => {
         """
         @db.manyToMany: 'users'
         """
-        messages: [Message]
+        messages: [Message!]!
       }
 
       type Message {
