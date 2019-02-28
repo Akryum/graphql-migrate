@@ -310,7 +310,7 @@ class Writer {
 
   private async dropTable (op: Operations.TableDropOperation) {
     if (['pg', 'mysql', 'mysql2'].includes(this.knex.client.config.client)) {
-      await this.trx.raw(`DROP TABLE ?.? CASCADE`, [this.schemaName, op.table])
+      await this.trx.raw(`DROP TABLE ?.? CASCADE`, [this.trx.raw(this.schemaName), this.trx.raw(op.table)])
     } else {
       await this.trx.schema.withSchema(this.schemaName).dropTable(this.getTableName(op.table))
     }
