@@ -8,7 +8,6 @@ import { sortOps } from '../util/sortOps'
 
 const CREATE_TABLE_CHILD_OPS: OperationType[] = [
   'table.comment.set',
-  'table.foreign.create',
   'table.index.create',
   'table.unique.create',
   'table.primary.set',
@@ -71,6 +70,7 @@ class Writer {
     plugins: MigratePlugin[],
   ) {
     this.operations = operations.slice().sort(sortOps)
+    console.log(this.operations)
     this.schemaName = schemaName
     this.tablePrefix = tablePrefix
     this.columnPrefix = columnPrefix
@@ -100,6 +100,14 @@ class Writer {
           await this.callHook(op, 'before')
           await this.dropTable(op as Operations.TableDropOperation)
           await this.callHook(op, 'after')
+          break
+        case 'table.foreign.create':
+          const tfop = (op as Operations.TableForeignCreateOperation)
+          await this.trx.schema.withSchema(this.schemaName).alterTable(tfop.table, (table) => {
+            table.foreign(this.getColumnName(tfop.column))
+              .references(this.getColumnName(tfop.referenceColumn))
+              .inTable(this.getTableName(tfop.referenceTable))
+          })
           break
         default:
           this.operations.splice(0, 0, op)
@@ -166,12 +174,6 @@ class Writer {
         case 'table.comment.set':
           table.comment((childOp as Operations.TableCommentSetOperation).comment || '')
           break
-        case 'table.foreign.create':
-          const tfop = (childOp as Operations.TableForeignCreateOperation)
-          table.foreign(this.getColumnName(tfop.column))
-            .references(this.getColumnName(tfop.referenceColumn))
-            .inTable(this.getTableName(tfop.referenceTable))
-          break
         case 'table.index.create':
           const tiop = (childOp as Operations.TableIndexCreateOperation)
           table.index(this.getColumnNames(tiop.columns), tiop.indexName || undefined, tiop.indexType || undefined)
@@ -234,12 +236,6 @@ class Writer {
         switch (childOp.type) {
         case 'table.comment.set':
           table.comment((childOp as Operations.TableCommentSetOperation).comment || '')
-          break
-        case 'table.foreign.create':
-          const tfop = (childOp as Operations.TableForeignCreateOperation)
-          table.foreign(this.getColumnName(tfop.column))
-            .references(this.getColumnName(tfop.referenceColumn))
-            .inTable(this.getTableName(tfop.referenceTable))
           break
         case 'table.foreign.drop':
           const tfdop = (childOp as Operations.TableForeignDropOperation)

@@ -19,6 +19,7 @@ class Differ {
   private to: AbstractDatabase
   private updateComments: boolean
   private operations: Operations.Operation[] = []
+  private tableCount = 0
 
   constructor (from: AbstractDatabase, to: AbstractDatabase, options: any) {
     this.from = from
@@ -168,7 +169,7 @@ class Differ {
     const op: Operations.TableCreateOperation = {
       type: 'table.create',
       table: table.name,
-      priority: table.name.includes('_join_') ? 1 : 0,
+      priority: this.tableCount++,
     }
     this.operations.push(op)
 

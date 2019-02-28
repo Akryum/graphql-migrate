@@ -8,6 +8,7 @@ const priority: OperationType[] = [
   'table.drop',
   'table.create',
   'column.create',
+  'table.foreign.create',
 ]
 
 function getPriority (op: Operation) {
