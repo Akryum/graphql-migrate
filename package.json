@@ -1,6 +1,6 @@
 {
   "name": "graphql-migrate",
-  "version": "0.0.6-1",
+  "version": "0.1.0",
   "description": "Create & migrate Databases from GraphQL Schema",
   "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
   "scripts": {
