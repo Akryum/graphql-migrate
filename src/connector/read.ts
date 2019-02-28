@@ -75,7 +75,9 @@ class Reader {
 
       // Columns
       const columnComments = await getColumnComments(this.knex, tableName, this.schemaName)
-      const columnInfo: { [key: string]: ColumnInfo } = await this.knex(tableName).columnInfo() as any
+      const columnInfo: { [key: string]: ColumnInfo } = await this.knex(tableName)
+        .withSchema(this.schemaName)
+        .columnInfo() as any
       for (const key in columnInfo) {
         const columnName = this.getColumnName(key)
         if (!columnName) { continue }
