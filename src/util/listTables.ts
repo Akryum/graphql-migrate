@@ -26,12 +26,12 @@ const queries: any = {
   }),
 
   pg: (knex: Knex, schemaName: string) => ({
-    sql: `select t.table_name, d.description from information_schema.tables t
-    inner join pg_class c on c.relkind = 'r' and c.relname = t.table_name
+    sql: `select c.relname, d.description from pg_class c
+    left join pg_namespace n on n.oid = c.relnamespace
     left join pg_description d on d.objoid = c.oid and d.objsubid = 0
-    where t.table_schema = ? and t.table_catalog = ?`,
-    bindings: [schemaName, knex.client.database()],
-    output: (resp: any) => resp.rows.map((table: any) => ({ name: table.table_name, comment: table.description })),
+    where c.relkind = 'r' and n.nspname = ?;`,
+    bindings: [schemaName],
+    output: (resp: any) => resp.rows.map((table: any) => ({ name: table.relname, comment: table.description })),
   }),
 
   sqlite3: () => ({
