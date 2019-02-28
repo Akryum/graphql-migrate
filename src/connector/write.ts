@@ -70,7 +70,6 @@ class Writer {
     plugins: MigratePlugin[],
   ) {
     this.operations = operations.slice().sort(sortOps)
-    console.log(this.operations)
     this.schemaName = schemaName
     this.tablePrefix = tablePrefix
     this.columnPrefix = columnPrefix
