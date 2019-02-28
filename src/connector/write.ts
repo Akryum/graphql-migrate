@@ -200,7 +200,10 @@ class Writer {
   private createColumn (op: Operations.ColumnCreateOperation, table: CreateTableBuilder) {
     if (op.columnType in table) {
       // @ts-ignore
-      let col: Knex.ColumnBuilder = table[op.columnType](this.getColumnName(op.column), ...op.args)
+      let col: Knex.ColumnBuilder = table[op.columnType](
+        this.getColumnName(op.column),
+        ...this.getColumnTypeArgs(op),
+      )
       if (op.comment) {
         col = col.comment(op.comment)
       }
@@ -292,7 +295,10 @@ class Writer {
 
   private alterColumn (table: TableBuilder, op: Operations.ColumnAlterOperation) {
     // @ts-ignore
-    let col: Knex.ColumnBuilder = table[op.columnType](op.column, ...op.args)
+    let col: Knex.ColumnBuilder = table[op.columnType](
+      op.column,
+      ...this.getColumnTypeArgs(op),
+    )
     if (op.comment) {
       col = col.comment(op.comment)
     }
@@ -314,5 +320,20 @@ class Writer {
     } else {
       await this.trx.schema.withSchema(this.schemaName).dropTable(this.getTableName(op.table))
     }
+  }
+
+  private getColumnTypeArgs (op: Operations.ColumnCreateOperation | Operations.ColumnAlterOperation) {
+    let args: any[] = op.args
+    const dbType: string = this.knex.client.config.client
+    if (op.columnType === 'timestamp' && args.length) {
+      if (dbType === 'pg') {
+        args = [!args[0]]
+      } else if (dbType === 'mssql') {
+        args = [{ useTz: args[0] }]
+      } else {
+        args = []
+      }
+    }
+    return args
   }
 }
