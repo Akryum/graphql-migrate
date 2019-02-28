@@ -98,8 +98,7 @@ class Writer {
           break
         case 'table.drop':
           await this.callHook(op, 'before')
-          const tdop = (op as Operations.TableDropOperation)
-          await this.trx.schema.withSchema(this.schemaName).dropTable(this.getTableName(tdop.table))
+          await this.dropTable(op as Operations.TableDropOperation)
           await this.callHook(op, 'after')
           break
         default:
@@ -307,5 +306,13 @@ class Writer {
     }
     col = col.alter()
     return col
+  }
+
+  private async dropTable (op: Operations.TableDropOperation) {
+    if (['pg', 'mysql', 'mysql2'].includes(this.knex.client.config.client)) {
+      await this.trx.raw(`DROP TABLE ?.? CASCADE`, [this.schemaName, op.table])
+    } else {
+      await this.trx.schema.withSchema(this.schemaName).dropTable(this.getTableName(op.table))
+    }
   }
 }
