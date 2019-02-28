@@ -256,11 +256,10 @@ class AbstractDatabaseBuilder {
         if (!isListType(foreignFieldType)) { return null }
 
         // Create join table for many-to-many
-        const defaultName = this.getName([
+        const tableName = this.getName([
           `${this.currentType}_${field.name}`,
           `${foreignType.name}_${foreignField.name}`,
         ].sort().join('_join_'))
-        const tableName: string = annotations.table || defaultName
         let joinTable = this.database.tableMap.get(tableName) || null
         if (!joinTable) {
           joinTable = {

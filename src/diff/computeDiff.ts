@@ -168,6 +168,7 @@ class Differ {
     const op: Operations.TableCreateOperation = {
       type: 'table.create',
       table: table.name,
+      priority: table.name.includes('_join_') ? 1 : 0,
     }
     this.operations.push(op)
 
@@ -203,6 +204,7 @@ class Differ {
       type: 'table.rename',
       fromName: fromTable.name,
       toName: toTable.name,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -211,6 +213,7 @@ class Differ {
     const op: Operations.TableDropOperation = {
       type: 'table.drop',
       table: table.name,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -220,6 +223,7 @@ class Differ {
       type: 'table.comment.set',
       table: table.name,
       comment: table.comment,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -230,6 +234,7 @@ class Differ {
       table: table.name,
       columns: index ? index.columns : null,
       indexName: index ? index.name : null,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -241,6 +246,7 @@ class Differ {
       columns: index.columns,
       indexName: index.name,
       indexType: index.type,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -251,6 +257,7 @@ class Differ {
       table: table.name,
       columns: index.columns,
       indexName: index.name,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -261,6 +268,7 @@ class Differ {
       table: table.name,
       columns: index.columns,
       indexName: index.name,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -275,6 +283,7 @@ class Differ {
       table: table.name,
       columns: index.columns,
       indexName: index.name,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -287,6 +296,7 @@ class Differ {
         column: column.name,
         referenceTable: column.foreign.tableName,
         referenceColumn: column.foreign.columnName,
+        priority: 0,
       }
       this.operations.push(op)
     }
@@ -298,6 +308,7 @@ class Differ {
         type: 'table.foreign.drop',
         table: table.name,
         column: column.name,
+        priority: 0,
       }
       this.operations.push(op)
     }
@@ -313,6 +324,7 @@ class Differ {
       comment: column.comment,
       nullable: column.nullable,
       defaultValue: column.defaultValue,
+      priority: 0,
     }
     this.operations.push(op)
 
@@ -326,6 +338,7 @@ class Differ {
       table: table.name,
       fromName: fromCol.name,
       toName: toCol.name,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -340,6 +353,7 @@ class Differ {
       comment: column.comment,
       nullable: column.nullable,
       defaultValue: column.defaultValue,
+      priority: 0,
     }
     this.operations.push(op)
   }
@@ -349,6 +363,7 @@ class Differ {
       type: 'column.drop',
       table: table.name,
       column: column.name,
+      priority: 0,
     }
     this.operations.push(op)
   }

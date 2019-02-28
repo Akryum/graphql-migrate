@@ -17,6 +17,7 @@ export type OperationType =
 
 export interface Operation {
   type: OperationType
+  priority: number
 }
 
 export interface TableCreateOperation extends Operation {

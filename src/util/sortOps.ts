@@ -19,5 +19,8 @@ function getPriority (op: Operation) {
 }
 
 export function sortOps (a: Operation, b: Operation): number {
+  if (a.type === b.type) {
+    return a.priority - b.priority
+  }
   return getPriority(a) - getPriority(b)
 }

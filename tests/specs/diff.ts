@@ -61,11 +61,13 @@ describe('compute diff', () => {
     expect(result[0]).toEqual({
       type: 'table.create',
       table: 'User',
+      priority: 0,
     })
     expect(result[1]).toEqual({
       type: 'table.comment.set',
       table: 'User',
       comment: 'Some comment',
+      priority: 0,
     })
     expect(result[2]).toEqual({
       type: 'column.create',
@@ -76,6 +78,7 @@ describe('compute diff', () => {
       nullable: false,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
     expect(result[3]).toEqual({
       type: 'column.create',
@@ -86,11 +89,13 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
     expect(result[4]).toEqual({
       type: 'table.primary.set',
       table: 'User',
       columns: ['id'],
+      priority: 0,
     })
   })
 
@@ -112,6 +117,7 @@ describe('compute diff', () => {
       type: 'table.rename',
       fromName: 'User',
       toName: 'users',
+      priority: 0,
     })
   })
 
@@ -134,6 +140,7 @@ describe('compute diff', () => {
       type: 'table.comment.set',
       table: 'User',
       comment: 'New comment',
+      priority: 0,
     })
   })
 
@@ -163,6 +170,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
   })
 
@@ -193,6 +201,7 @@ describe('compute diff', () => {
       type: 'column.drop',
       table: 'User',
       column: 'id',
+      priority: 0,
     })
     expect(result[1]).toEqual({
       type: 'column.create',
@@ -203,6 +212,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
   })
 
@@ -237,6 +247,7 @@ describe('compute diff', () => {
       table: 'User',
       fromName: 'id',
       toName: 'email',
+      priority: 0,
     })
   })
 
@@ -276,6 +287,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: 'bar',
+      priority: 0,
     })
   })
 
@@ -311,6 +323,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
   })
 
@@ -348,6 +361,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
   })
 
@@ -385,6 +399,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: undefined,
       comment: null,
+      priority: 0,
     })
   })
 
@@ -422,6 +437,7 @@ describe('compute diff', () => {
       nullable: true,
       defaultValue: 'bar',
       comment: null,
+      priority: 0,
     })
   })
 
@@ -462,6 +478,7 @@ describe('compute diff', () => {
       type: 'table.primary.set',
       table: 'User',
       columns: ['email'],
+      priority: 0,
     })
   })
 
@@ -502,11 +519,13 @@ describe('compute diff', () => {
       type: 'table.index.drop',
       table: 'User',
       columns: ['id'],
+      priority: 0,
     })
     expect(result[1]).toEqual({
       type: 'table.index.create',
       table: 'User',
       columns: ['email'],
+      priority: 0,
     })
   })
 
@@ -548,12 +567,14 @@ describe('compute diff', () => {
       table: 'User',
       columns: ['id'],
       indexName: 'foo',
+      priority: 0,
     })
     expect(result[1]).toEqual({
       type: 'table.index.create',
       table: 'User',
       columns: ['email'],
       indexName: 'foo',
+      priority: 0,
     })
   })
 
@@ -594,6 +615,29 @@ describe('compute diff', () => {
       type: 'table.index.drop',
       table: 'User',
       columns: ['id'],
+      priority: 0,
+    })
+  })
+
+  test('create table & join table', async () => {
+    const result = await computeDiff(dbFactory(), dbFactory([
+      tableFactory({
+        name: 'user',
+      }),
+      tableFactory({
+        name: 'user_groups_join_group_users',
+      }),
+    ]))
+    expect(result.length).toBe(2)
+    expect(result[0]).toEqual({
+      type: 'table.create',
+      table: 'user',
+      priority: 0,
+    })
+    expect(result[1]).toEqual({
+      type: 'table.create',
+      table: 'user_groups_join_group_users',
+      priority: 1,
     })
   })
 })
