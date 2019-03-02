@@ -1,6 +1,6 @@
 {
   "name": "graphql-migrate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create & migrate Databases from GraphQL Schema",
   "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
   "scripts": {
@@ -52,5 +52,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Akryum/graphql-migrate.git"
-  }
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE"
+  ]
 }
