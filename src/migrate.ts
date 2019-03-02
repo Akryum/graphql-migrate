@@ -64,11 +64,11 @@ export async function migrate (
   options: MigrateOptions = {},
 ): Promise<Operation[]> {
   // Default options
-  options = {
+  const finalOptions = {
     ...defaultOptions,
     ...options,
   }
-  if (options.debug) {
+  if (finalOptions.debug) {
     config = {
       ...config,
       debug: true,
@@ -77,34 +77,34 @@ export async function migrate (
   // Read current
   const existingAdb = await read(
     config,
-    options.dbSchemaName,
-    options.dbTablePrefix,
-    options.dbColumnPrefix,
+    finalOptions.dbSchemaName,
+    finalOptions.dbTablePrefix,
+    finalOptions.dbColumnPrefix,
   )
   // Generate new
   const newAdb = await generateAbstractDatabase(schema, {
-    lowercaseNames: options.lowercaseNames,
-    scalarMap: options.scalarMap,
+    lowercaseNames: finalOptions.lowercaseNames,
+    scalarMap: finalOptions.scalarMap,
   })
-  if (options.debug) {
+  if (finalOptions.debug) {
     console.log('BEFORE', JSON.stringify(existingAdb.tables, null, 2))
     console.log('AFTER', JSON.stringify(newAdb.tables, null, 2))
   }
   // Diff
   const ops = await computeDiff(existingAdb, newAdb, {
-    updateComments: options.updateComments,
+    updateComments: finalOptions.updateComments,
   })
-  if (options.debug) {
+  if (finalOptions.debug) {
     console.log('OPERATIONS', ops)
   }
   // Write back to DB
   await write(
     ops,
     config,
-    options.dbSchemaName,
-    options.dbTablePrefix,
-    options.dbColumnPrefix,
-    options.plugins,
+    finalOptions.dbSchemaName,
+    finalOptions.dbTablePrefix,
+    finalOptions.dbColumnPrefix,
+    finalOptions.plugins,
   )
 
   return ops
