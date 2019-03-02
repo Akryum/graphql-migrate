@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@nodepack/plugin-typescript": "^0.0.2",
-    "@nodepack/service": "^0.0.4",
+    "@nodepack/service": "^0.1.11",
     "@types/graphql": "^14.0.5",
     "@types/jest": "^23.3.13",
     "@typescript-eslint/eslint-plugin": "^1.1.1",
