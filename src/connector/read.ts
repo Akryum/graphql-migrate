@@ -17,7 +17,7 @@ import getUniques from '../util/getUniques'
  * @param {string} tablePrefix Table name prefix: `<prefix><tableName>`
  * @param {string} columnPrefix Column name prefix: `<prefix><columnName>`
  */
-export default function read (
+export function read (
   config: Config,
   schemaName = 'public',
   tablePrefix = '',

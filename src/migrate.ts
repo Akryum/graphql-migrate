@@ -1,13 +1,13 @@
 import { Config } from 'knex'
 import { GraphQLSchema } from 'graphql'
-import read from './connector/read'
-import generateAbstractDatabase, { ScalarMap } from './abstract/generateAbstractDatabase'
-import computeDiff from './diff/computeDiff'
-import write from './connector/write'
-import MigratePlugin from './plugin/MigratePlugin'
+import { read } from './connector/read'
+import { generateAbstractDatabase, ScalarMap } from './abstract/generateAbstractDatabase'
+import { computeDiff } from './diff/computeDiff'
+import { write } from './connector/write'
+import { MigratePlugin } from './plugin/MigratePlugin'
 import { Operation } from './diff/Operation'
 
-export interface Options {
+export interface MigrateOptions {
   /**
    * Table schema: `<schemaName>.<tableName>`.
    */
@@ -46,7 +46,7 @@ export interface Options {
   debug?: boolean
 }
 
-export const defaultOptions: Options = {
+export const defaultOptions: MigrateOptions = {
   dbSchemaName: 'public',
   dbTablePrefix: '',
   dbColumnPrefix: '',
@@ -58,10 +58,10 @@ export const defaultOptions: Options = {
   debug: false,
 }
 
-export default async function (
+export async function migrate (
   config: Config,
   schema: GraphQLSchema,
-  options: Options = {},
+  options: MigrateOptions = {},
 ): Promise<Operation[]> {
   // Default options
   options = {

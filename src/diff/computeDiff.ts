@@ -5,7 +5,7 @@ import * as Operations from './Operation'
 // @ts-ignore
 import isEqual from 'lodash.isequal'
 
-export default async function (from: AbstractDatabase, to: AbstractDatabase, {
+export async function computeDiff (from: AbstractDatabase, to: AbstractDatabase, {
   updateComments = false,
 } = {}): Promise<Operations.Operation []> {
   const differ = new Differ(from, to, {

@@ -3,7 +3,7 @@ import Knex, { Config, CreateTableBuilder, TableBuilder } from 'knex'
 import * as Operations from '../diff/Operation'
 // eslint-disable-next-line import/no-duplicates
 import { Operation, OperationType } from '../diff/Operation'
-import MigratePlugin, { WriteCallback } from '../plugin/MigratePlugin'
+import { MigratePlugin, WriteCallback } from '../plugin/MigratePlugin'
 import { sortOps } from '../util/sortOps'
 
 const CREATE_TABLE_CHILD_OPS: OperationType[] = [
@@ -31,7 +31,7 @@ const ALTER_TABLE_CHILD_OPS: OperationType[] = [
  * @param {string} tablePrefix Table name prefix: `<prefix><tableName>`
  * @param {string} columnPrefix Column name prefix: `<prefix><columnName>`
  */
-export default async function (
+export async function write (
   operations: Operation[],
   config: Config,
   schemaName = 'public',

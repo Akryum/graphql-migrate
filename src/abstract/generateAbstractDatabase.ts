@@ -58,7 +58,7 @@ export const defaultOptions: GenerateAbstractDatabaseOptions = {
   scalarMap: null,
 }
 
-export default async function (
+export async function generateAbstractDatabase (
   schema: GraphQLSchema,
   options: GenerateAbstractDatabaseOptions = defaultOptions,
 ): Promise<AbstractDatabase> {
