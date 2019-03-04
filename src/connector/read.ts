@@ -10,6 +10,7 @@ import getPrimaryKey from '../util/getPrimaryKey'
 import getForeignKeys from '../util/getForeignKeys'
 import getIndexes from '../util/getIndexes'
 import getUniques from '../util/getUniques'
+import getCheckConstraints from '../util/getCheckConstraints'
 
 /**
  * @param {Config} config Knex configuration
@@ -73,32 +74,43 @@ class Reader {
       // Foreign keys
       const foreignKeys = await getForeignKeys(this.knex, tableName, this.schemaName)
 
+      const checkContraints = await getCheckConstraints(this.knex, tableName, this.schemaName)
+
       // Columns
       const columnComments = await getColumnComments(this.knex, tableName, this.schemaName)
       const columnInfo: { [key: string]: ColumnInfo } = await this.knex(tableName)
         .withSchema(this.schemaName)
         .columnInfo() as any
       for (const key in columnInfo) {
-        const columnName = this.getColumnName(key)
-        if (!columnName) { continue }
-        const info = columnInfo[key]
-        const foreign = foreignKeys.find((k) => k.column === key)
-        const column: TableColumn = {
-          name: columnName,
-          comment: this.getComment(columnComments, key),
-          annotations: {},
-          ...getTypeAlias(info.type, info.maxLength),
-          nullable: info.nullable,
-          defaultValue: transformDefaultValue(info.defaultValue),
-          foreign: foreign ? {
-            type: null,
-            field: null,
-            tableName: this.getTableName(foreign.foreignTable),
-            columnName: this.getColumnName(foreign.foreignColumn),
-          } : null,
+        if (columnInfo[key]) {
+          const columnName = this.getColumnName(key)
+          if (!columnName) { continue }
+          const info = columnInfo[key]
+          const foreign = foreignKeys.find((k) => k.column === key)
+          const column: TableColumn = {
+            name: columnName,
+            comment: this.getComment(columnComments, key),
+            annotations: {},
+            ...getTypeAlias(info.type, info.maxLength),
+            nullable: info.nullable,
+            defaultValue: transformDefaultValue(info.defaultValue),
+            foreign: foreign ? {
+              type: null,
+              field: null,
+              tableName: this.getTableName(foreign.foreignTable),
+              columnName: this.getColumnName(foreign.foreignColumn),
+            } : null,
+          }
+
+          const checkContraint = checkContraints.find((c: any) => c.columnNames.includes(columnName))
+          if (checkContraint && checkContraint.values) {
+            column.type = 'enum'
+            column.args = [checkContraint.values]
+          }
+
+          table.columns.push(column)
+          table.columnMap.set(key, column)
         }
-        table.columns.push(column)
-        table.columnMap.set(key, column)
       }
 
       // Primary key

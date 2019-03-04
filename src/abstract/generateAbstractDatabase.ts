@@ -192,7 +192,7 @@ class AbstractDatabaseBuilder {
     // Enum
     } else if (isEnumType(fieldType)) {
       type = 'enum'
-      args = [fieldType.getValues().map((v) => v.name), { enumName: annotations.enumName || this.getName(fieldType.name) }]
+      args = [fieldType.getValues().map((v) => v.name)]
 
     // Object
     } else if (isObjectType(fieldType)) {
