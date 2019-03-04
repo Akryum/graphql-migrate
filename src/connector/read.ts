@@ -174,7 +174,9 @@ class Reader {
 
   private getComment (comments: Array<{ column: string, comment: string }>, column: string) {
     const row = comments.find((c) => c.column === column)
-    if (row) { return row.comment }
+    if (row && row.comment != null) {
+      return row.comment.replace(/'/g, `''`)
+    }
     return null
   }
 }
