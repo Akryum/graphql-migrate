@@ -97,7 +97,7 @@ export interface ColumnCreateOperation extends Operation {
   table: string
   column: string
   columnType: string
-  args: string[]
+  args: any[]
   comment: string | null
   nullable: boolean
   defaultValue: any
@@ -108,7 +108,7 @@ export interface ColumnAlterOperation extends Operation {
   table: string
   column: string
   columnType: string
-  args: string[]
+  args: any[]
   comment: string | null
   nullable: boolean
   defaultValue: any
