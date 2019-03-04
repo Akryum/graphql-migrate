@@ -223,12 +223,37 @@ class Writer {
   }
 
   private async alterTable (tableName: string) {
-    const childOps = this.operations.filter(
+    const allChildOps = this.operations.filter(
       (child) => ALTER_TABLE_CHILD_OPS.includes(child.type) &&
       (child as any).table === tableName,
     )
-    for (const childOp of childOps) {
+    const childOps: Operations.Operation[] = []
+    for (const childOp of allChildOps) {
       await this.callHook(childOp, 'before')
+
+      let add = true
+
+      if (childOp.type === 'column.alter') {
+        const aop = childOp as Operations.ColumnAlterOperation
+        if (aop.columnType === 'enum' && (aop.args.length < 2 || !aop.args[1].useNative)) {
+          // Prepared statement no supported here
+          const constraintName = this.knex.raw(`${tableName}_${aop.column}_check`)
+          await this.trx.raw(`ALTER TABLE "?"."?" DROP CONSTRAINT "?", ADD CONSTRAINT "?" CHECK (? IN (?)) `, [
+            this.knex.raw(this.schemaName),
+            this.knex.raw(tableName),
+            constraintName,
+            constraintName,
+            this.knex.raw(aop.column),
+            this.knex.raw(aop.args[0].map((s: string) => `'${s.replace(`'`, `\\'`)}'`).join(', ')),
+          ])
+          this.removeOperation(childOp)
+          add = false
+        }
+      }
+
+      if (add) {
+        childOps.push(childOp)
+      }
     }
     await this.trx.schema.withSchema(this.schemaName).alterTable(this.getTableName(tableName), async (table) => {
       for (const childOp of childOps) {
