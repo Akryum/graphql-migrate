@@ -47,6 +47,25 @@ describe('create abstract database', () => {
     expect(colName.comment).toBe('Display name.')
   })
 
+  test('lowercase names', async () => {
+    const schema = buildSchema(`
+      type User {
+        id: ID!
+        fullName: String!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema, { lowercaseNames: false })
+    expect(adb.tables.length).toBe(1)
+    const [User] = adb.tables
+    expect(User.name).toBe('User')
+    expect(User.columns.length).toBe(2)
+    const [colId, colFullName] = User.columns
+    expect(colId.name).toBe('id')
+    expect(colId.type).toBe('uuid')
+    expect(colFullName.name).toBe('fullName')
+    expect(colFullName.type).toBe('string')
+  })
+
   test('skip table', async () => {
     const schema = buildSchema(`
       """

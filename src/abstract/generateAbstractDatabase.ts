@@ -80,7 +80,11 @@ class AbstractDatabaseBuilder {
 
   constructor (schema: GraphQLSchema, options: GenerateAbstractDatabaseOptions) {
     this.schema = schema
-    this.lowercaseNames = options.lowercaseNames || defaultOptions.lowercaseNames as boolean
+    if (typeof options.lowercaseNames !== 'undefined') {
+      this.lowercaseNames = options.lowercaseNames as boolean
+    } else {
+      this.lowercaseNames = defaultOptions.lowercaseNames as boolean
+    }
     this.scalarMap = options.scalarMap as ScalarMap | null
     this.mapListToJson = options.mapListToJson || defaultOptions.mapListToJson as boolean
     this.typeMap = this.schema.getTypeMap()
