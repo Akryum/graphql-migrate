@@ -248,7 +248,7 @@ class AbstractDatabaseBuilder {
         }
 
         // Foreign Field
-        const foreignKey = onSameType ? field.name : annotations.manyToMany || this.currentTable.name.toLowerCase()
+        const foreignKey = onSameType ? field.name : annotations.manyToMany || this.currentTable.name
         const foreignField = foreignType.getFields()[foreignKey]
         if (!foreignField) { return null }
         // @db.foreign
@@ -310,7 +310,7 @@ class AbstractDatabaseBuilder {
         // Index
         joinTable.indexes.push({
           columns: descriptors.map((d) => d.name),
-          name: `${joinTable.name}_${descriptors.map((d) => d.name).join('_')}_index`.toLowerCase().substr(0, 63),
+          name: `${joinTable.name}_${descriptors.map((d) => d.name).join('_')}_index`.substr(0, 63),
           type: null,
         })
         return null
@@ -364,7 +364,7 @@ class AbstractDatabaseBuilder {
         }
         index.columns.push(columnName)
         if (!index.name) {
-          index.name = type.defaultName(this.currentTable.name, columnName).toLowerCase().substr(0, 63)
+          index.name = type.defaultName(this.currentTable.name, columnName).substr(0, 63)
         }
       }
     }

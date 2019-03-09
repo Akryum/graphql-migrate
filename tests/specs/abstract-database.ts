@@ -47,7 +47,7 @@ describe('create abstract database', () => {
     expect(colName.comment).toBe('Display name.')
   })
 
-  test('lowercase names', async () => {
+  test('lowercase names false', async () => {
     const schema = buildSchema(`
       type User {
         id: ID!
@@ -397,6 +397,39 @@ describe('create abstract database', () => {
     expect(colUserMessages.name).toBe('messages_foreign')
     expect(colUserMessages.type).toBe('uuid')
     expect(colUserMessages.foreign && colUserMessages.foreign.tableName).toBe('user')
+    expect(colUserMessages.foreign && colUserMessages.foreign.columnName).toBe('id')
+  })
+
+  test('many to many with lowercase names false', async () => {
+    const schema = buildSchema(`
+      type User {
+        id: ID!
+        """
+        @db.manyToMany: 'users'
+        """
+        messages: [Message!]!
+      }
+
+      type Message {
+        id: ID!
+        """
+        @db.manyToMany: 'messages'
+        """
+        users: [User]
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema, { lowercaseNames: false })
+    expect(adb.tables.length).toBe(3)
+    const Join = adb.tables[2]
+    expect(Join.name).toBe('Message_users_join_User_messages')
+    const [colMessageUsers, colUserMessages] = Join.columns
+    expect(colMessageUsers.name).toBe('users_foreign')
+    expect(colMessageUsers.type).toBe('uuid')
+    expect(colMessageUsers.foreign && colMessageUsers.foreign.tableName).toBe('Message')
+    expect(colMessageUsers.foreign && colMessageUsers.foreign.columnName).toBe('id')
+    expect(colUserMessages.name).toBe('messages_foreign')
+    expect(colUserMessages.type).toBe('uuid')
+    expect(colUserMessages.foreign && colUserMessages.foreign.tableName).toBe('User')
     expect(colUserMessages.foreign && colUserMessages.foreign.columnName).toBe('id')
   })
 
