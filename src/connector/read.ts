@@ -150,6 +150,8 @@ class Reader {
       }
     }
 
+    await this.knex.destroy()
+
     return this.database
   }
 
