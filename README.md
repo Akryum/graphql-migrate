@@ -71,6 +71,9 @@ All the operations executed on the database will be wrapped in a transaction: if
   - `dbColumnPrefix` (default: `''`): column name prefix: `<prefix><columnName>`.
   - `updateComments` (default: `false`): by default, `migrate` won't overwrite comments on table and columns. This forces comment overwritting.
   - `lowercaseNames` (default: `true`): default table and column names will be lowercase.
+  - `scalarMap` (default: `null`): Custom Scalar mapping
+  - `mapListToJson` (default: `true`): Map scalar/enum lists to json column type by default.
+  - `plugins` (default: `[]`): List of graphql-migrate plugins
   - `debug` (default: `false`): displays debugging informations and SQL queries.
 
 Example:
