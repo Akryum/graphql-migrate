@@ -41,6 +41,7 @@ Instantly create or update a SQL database from a GraphQL API schema.
 - [Cookbook](#cookbook)
 - [Custom Scalar Mapping](#custom-scalar-mapping)
 - [Custom logic with plugins](#custom-logic-with-plugins)
+- [Internal types and fields](#internal-types-and-fields)
 - [Database compatibility](#database-compatibility)
 - [Roadmap](https://github.com/Akryum/graphql-migrate/projects/1)
 
@@ -629,6 +630,61 @@ Let's describe what's going on -- we:
 - Annotate the `fullname` field to indicate it's the new name of `lname`.
 - We declare a plugin that tap into the `column.drop` write operation.
 - In this hook, we read the users and update each one of them to merge the two columns into `lname` before the `fname` column is dropped.
+
+## Internal types and fields
+
+You may want to have internal types and fields that shouldn't be exposed on the GraphQL API. To accomplish this, you can make two different GraphQL schemas:
+
+- The first one only have the public types and fields.
+- The second one also have the internal types and fields and will only be used to migrate the database.
+
+Here is an example with Apollo Server:
+
+```js
+import { makeExecutableSchema } from 'apollo-server'
+
+const publicTypeDefs = [
+  gql`
+  type User {
+    id: ID!
+    email: String!
+  }
+
+  type Query {
+    user (id: ID!): User
+  }
+  `,
+]
+
+const resolvers = {
+  Query: {
+    user: () => { /* ... */ },
+  },
+}
+
+// Not exposed in final API
+const internalTypeDefs = [
+  gql`
+  extend type User {
+    encryptedPassword: String!
+  }
+  `,
+]
+
+// For Database only
+const dbSchema = makeExecutableSchema({
+  typeDefs: publicTypeDefs.concat(...internalTypeDefs),
+})
+
+const ops = await migrate(knexConfig, dbSchema)
+console.log(`Migrated DB (${ops.length} ops).`)
+
+// For Apollo server
+const schema = makeExecutableSchema({
+  typeDefs: publicTypeDefs,
+  resolvers,
+})
+```
 
 ## Database compatibility
 
