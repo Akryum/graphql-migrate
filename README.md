@@ -3,7 +3,7 @@
   <img src="https://raw.githubusercontent.com/Akryum/graphql-migrate/master/graphql-migrate.png" alt="Logo">
 </p>
 
-# grahpql-migrate
+# graphql-migrate
 
 [![circleci](https://img.shields.io/circleci/project/github/Akryum/graphql-migrate/master.svg)](https://circleci.com/gh/Akryum/graphql-migrate)
 
