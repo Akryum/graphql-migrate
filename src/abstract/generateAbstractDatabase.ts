@@ -17,6 +17,7 @@ import { TableColumn, ForeignKey } from './TableColumn'
 import { parseAnnotations, stripAnnotations } from 'graphql-annotations'
 import getColumnTypeFromScalar, { TableColumnTypeDescriptor } from './getColumnTypeFromScalar'
 import { escapeComment } from '../util/comments'
+import { defaultNameTransform } from '../util/defaultNameTransforms'
 
 const ROOT_TYPES = ['Query', 'Mutation', 'Subscription']
 
@@ -47,15 +48,24 @@ export type ScalarMap = (
   annotations: any,
 ) => TableColumnTypeDescriptor | null
 
+export type NameTransformDirection = 'from-db' | 'to-db'
+
+export type NameTransform = (
+  name: string,
+  direction: NameTransformDirection,
+) => string
+
 export interface GenerateAbstractDatabaseOptions {
-  lowercaseNames?: boolean
   scalarMap?: ScalarMap | null
   mapListToJson?: boolean
+  transformTableName?: NameTransform | null
+  transformColumnName?: NameTransform | null
 }
 
 export const defaultOptions: GenerateAbstractDatabaseOptions = {
-  lowercaseNames: true,
   scalarMap: null,
+  transformTableName: defaultNameTransform,
+  transformColumnName: defaultNameTransform,
 }
 
 export async function generateAbstractDatabase (
@@ -68,9 +78,10 @@ export async function generateAbstractDatabase (
 
 class AbstractDatabaseBuilder {
   private schema: GraphQLSchema
-  private lowercaseNames: boolean
   private scalarMap: ScalarMap | null
   private mapListToJson: boolean
+  private transformTableName: NameTransform | null
+  private transformColumnName: NameTransform | null
   private typeMap: TypeMap
   private database: AbstractDatabase
   /** Used to push new intermediary tables after current table */
@@ -80,11 +91,8 @@ class AbstractDatabaseBuilder {
 
   constructor (schema: GraphQLSchema, options: GenerateAbstractDatabaseOptions) {
     this.schema = schema
-    if (typeof options.lowercaseNames !== 'undefined') {
-      this.lowercaseNames = options.lowercaseNames as boolean
-    } else {
-      this.lowercaseNames = defaultOptions.lowercaseNames as boolean
-    }
+    this.transformTableName = options.transformTableName
+    this.transformColumnName = options.transformColumnName
     this.scalarMap = options.scalarMap as ScalarMap | null
     this.mapListToJson = options.mapListToJson || defaultOptions.mapListToJson as boolean
     this.typeMap = this.schema.getTypeMap()
@@ -110,8 +118,17 @@ class AbstractDatabaseBuilder {
     return this.database
   }
 
-  private getName (name: string) {
-    if (this.lowercaseNames) { return name.toLowerCase() }
+  private getTableName (name: string) {
+    if (this.transformTableName) {
+      return this.transformTableName(name, 'to-db')
+    }
+    return name
+  }
+
+  private getColumnName (name: string) {
+    if (this.transformColumnName) {
+      return this.transformColumnName(name, 'to-db')
+    }
     return name
   }
 
@@ -123,7 +140,7 @@ class AbstractDatabaseBuilder {
     }
 
     const table: Table = {
-      name: annotations.name || this.getName(type.name),
+      name: annotations.name || this.getTableName(type.name),
       comment: escapeComment(stripAnnotations(type.description || null)),
       annotations,
       columns: [],
@@ -176,7 +193,7 @@ class AbstractDatabaseBuilder {
     }
 
     const notNull = isNonNullType(field.type)
-    let columnName: string = annotations.name || this.getName(field.name)
+    let columnName: string = annotations.name || this.getColumnName(field.name)
     let type: string
     let args: any[]
     let foreign: ForeignKey | null = null
@@ -204,7 +221,7 @@ class AbstractDatabaseBuilder {
 
     // Object
     } else if (isObjectType(fieldType)) {
-      columnName = annotations.name || this.getName(`${field.name}_foreign`)
+      columnName = annotations.name || this.getColumnName(`${field.name}_foreign`)
       const foreignType = this.typeMap[fieldType.name]
       if (!foreignType) {
         console.warn(`Foreign type ${fieldType.name} not found on field ${this.currentType}.${field.name}.`)
@@ -265,7 +282,7 @@ class AbstractDatabaseBuilder {
         if (!isListType(foreignFieldType)) { return null }
 
         // Create join table for many-to-many
-        const tableName = this.getName([
+        const tableName = this.getTableName([
           `${this.currentType}_${field.name}`,
           `${foreignType.name}_${foreignField.name}`,
         ].sort().join('_join_'))

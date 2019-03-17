@@ -47,25 +47,6 @@ describe('create abstract database', () => {
     expect(colName.comment).toBe('Display name.')
   })
 
-  test('lowercase names false', async () => {
-    const schema = buildSchema(`
-      type User {
-        id: ID!
-        fullName: String!
-      }
-    `)
-    const adb = await generateAbstractDatabase(schema, { lowercaseNames: false })
-    expect(adb.tables.length).toBe(1)
-    const [User] = adb.tables
-    expect(User.name).toBe('User')
-    expect(User.columns.length).toBe(2)
-    const [colId, colFullName] = User.columns
-    expect(colId.name).toBe('id')
-    expect(colId.type).toBe('uuid')
-    expect(colFullName.name).toBe('fullName')
-    expect(colFullName.type).toBe('string')
-  })
-
   test('skip table', async () => {
     const schema = buildSchema(`
       """
@@ -400,39 +381,6 @@ describe('create abstract database', () => {
     expect(colUserMessages.foreign && colUserMessages.foreign.columnName).toBe('id')
   })
 
-  test('many to many with lowercase names false', async () => {
-    const schema = buildSchema(`
-      type User {
-        id: ID!
-        """
-        @db.manyToMany: 'users'
-        """
-        messages: [Message!]!
-      }
-
-      type Message {
-        id: ID!
-        """
-        @db.manyToMany: 'messages'
-        """
-        users: [User]
-      }
-    `)
-    const adb = await generateAbstractDatabase(schema, { lowercaseNames: false })
-    expect(adb.tables.length).toBe(3)
-    const Join = adb.tables[2]
-    expect(Join.name).toBe('Message_users_join_User_messages')
-    const [colMessageUsers, colUserMessages] = Join.columns
-    expect(colMessageUsers.name).toBe('users_foreign')
-    expect(colMessageUsers.type).toBe('uuid')
-    expect(colMessageUsers.foreign && colMessageUsers.foreign.tableName).toBe('Message')
-    expect(colMessageUsers.foreign && colMessageUsers.foreign.columnName).toBe('id')
-    expect(colUserMessages.name).toBe('messages_foreign')
-    expect(colUserMessages.type).toBe('uuid')
-    expect(colUserMessages.foreign && colUserMessages.foreign.tableName).toBe('User')
-    expect(colUserMessages.foreign && colUserMessages.foreign.columnName).toBe('id')
-  })
-
   test('many to many on self', async () => {
     const schema = buildSchema(`
       type User {
@@ -519,6 +467,57 @@ describe('create abstract database', () => {
     expect(User.columns.length).toBe(1)
     const [colNames] = User.columns
     expect(colNames.type).toBe('json')
+  })
+
+  test('default name transforms', async () => {
+    const schema = buildSchema(`
+      type UserTeam {
+        id: ID!
+        name: String!
+        yearlyBilling: Boolean!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema)
+    expect(adb.tables.length).toBe(1)
+    const [UserTeam] = adb.tables
+    expect(UserTeam.name).toBe('user_team')
+    expect(UserTeam.columns.length).toBe(3)
+    const [colId, colName, colYearlyBilling] = UserTeam.columns
+    expect(colId.name).toBe('id')
+    expect(colName.name).toBe('name')
+    expect(colYearlyBilling.name).toBe('yearly_billing')
+  })
+
+  test('custom name transforms', async () => {
+    const schema = buildSchema(`
+      type UserTeam {
+        id: ID!
+        name: String!
+        yearlyBilling: Boolean!
+      }
+    `)
+    const adb = await generateAbstractDatabase(schema, {
+      transformTableName: (name, direction) => {
+        if (direction === 'to-db') {
+          return `Foo${name}`
+        }
+        return name
+      },
+      transformColumnName: (name, direction) => {
+        if (direction === 'to-db') {
+          return `bar_${name}`
+        }
+        return name
+      },
+    })
+    expect(adb.tables.length).toBe(1)
+    const [UserTeam] = adb.tables
+    expect(UserTeam.name).toBe('FooUserTeam')
+    expect(UserTeam.columns.length).toBe(3)
+    const [colId, colName, colYearlyBilling] = UserTeam.columns
+    expect(colId.name).toBe('bar_id')
+    expect(colName.name).toBe('bar_name')
+    expect(colYearlyBilling.name).toBe('bar_yearlyBilling')
   })
 
   test('sandbox', async () => {

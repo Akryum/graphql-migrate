@@ -15,6 +15,7 @@
     "prepublishOnly": "yarn run test && yarn run build"
   },
   "dependencies": {
+    "case": "^1.6.1",
     "graphql-annotations": "^0.0.3",
     "knex": "^0.16.3",
     "lodash.isequal": "^4.5.0"

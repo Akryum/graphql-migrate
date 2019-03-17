@@ -1,11 +1,12 @@
 import { Config } from 'knex'
 import { GraphQLSchema } from 'graphql'
 import { read } from './connector/read'
-import { generateAbstractDatabase, ScalarMap } from './abstract/generateAbstractDatabase'
+import { generateAbstractDatabase, ScalarMap, NameTransform } from './abstract/generateAbstractDatabase'
 import { computeDiff } from './diff/computeDiff'
 import { write } from './connector/write'
 import { MigratePlugin } from './plugin/MigratePlugin'
 import { Operation } from './diff/Operation'
+import { defaultNameTransform } from './util/defaultNameTransforms'
 
 export interface MigrateOptions {
   /**
@@ -25,9 +26,13 @@ export interface MigrateOptions {
    */
   updateComments?: boolean
   /**
-   * Default table and column names all lowercase.
+   * Transform the table names.
    */
-  lowercaseNames?: boolean
+  transformTableName?: NameTransform | null
+  /**
+   * Transform the column names.
+   */
+  transformColumnName?: NameTransform | null
   /**
    * Custom Scalar mapping
    */
@@ -51,7 +56,8 @@ export const defaultOptions: MigrateOptions = {
   dbTablePrefix: '',
   dbColumnPrefix: '',
   updateComments: false,
-  lowercaseNames: true,
+  transformTableName: defaultNameTransform,
+  transformColumnName: defaultNameTransform,
   scalarMap: null,
   mapListToJson: true,
   plugins: [],
@@ -83,7 +89,8 @@ export async function migrate (
   )
   // Generate new
   const newAdb = await generateAbstractDatabase(schema, {
-    lowercaseNames: finalOptions.lowercaseNames,
+    transformTableName: finalOptions.transformTableName,
+    transformColumnName: finalOptions.transformColumnName,
     scalarMap: finalOptions.scalarMap,
   })
   if (finalOptions.debug) {

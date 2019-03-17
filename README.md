@@ -37,11 +37,12 @@ Instantly create or update a SQL database from a GraphQL API schema.
 
 - [Installation](#installation)
 - [Programmatic Usage](#programmatic-usage)
-- [CLI Usage](#cli-usage)
+- [Name transforms](#name-transforms)
 - [Cookbook](#cookbook)
 - [Custom Scalar Mapping](#custom-scalar-mapping)
 - [Custom logic with plugins](#custom-logic-with-plugins)
 - [Internal types and fields](#internal-types-and-fields)
+- [CLI Usage](#cli-usage)
 - [Database compatibility](#database-compatibility)
 - [Roadmap](https://github.com/Akryum/graphql-migrate/projects/1)
 
@@ -71,7 +72,8 @@ All the operations executed on the database will be wrapped in a transaction: if
   - `dbTablePrefix` (default: `''`): table name prefix: `<prefix><tableName>`.
   - `dbColumnPrefix` (default: `''`): column name prefix: `<prefix><columnName>`.
   - `updateComments` (default: `false`): by default, `migrate` won't overwrite comments on table and columns. This forces comment overwritting.
-  - `lowercaseNames` (default: `true`): default table and column names will be lowercase.
+  - `transformTableName` (default: transform to `snake_case`): transform function for table names.
+  - `transformColumnName` (default: transform to `snake_case`): transform function for column names.
   - `scalarMap` (default: `null`): Custom Scalar mapping
   - `mapListToJson` (default: `true`): Map scalar/enum lists to json column type by default.
   - `plugins` (default: `[]`): List of graphql-migrate plugins
@@ -114,9 +116,46 @@ migrate(config, schema, {
 })
 ```
 
-## CLI Usage
+## Name transforms
 
-Available soon!
+You can customize the way table and column names are transformed before being applied to the database with the `transformTableName` and `transformColumnName` options.
+
+By default, they will convert the table and column names to Snake case:
+
+```js
+import Case from 'case'
+
+migrate(nkexConfig, schema, {
+  transformTableName: (name, direction) => {
+    if (direction === 'to-db') {
+      return Case.snake(name)
+    }
+    return name
+  },
+  transformColumnName: (name, direction) => {
+    if (direction === 'to-db') {
+      return Case.snake(name)
+    }
+    return name
+  },
+})
+```
+
+For example, let's consider this schema:
+
+```graphql
+type UserTeam {
+  id: ID!
+  name: String!
+  yearlyBilling: Boolean!
+}
+```
+
+We will create a `user_team` table with those columns:
+
+- `id`
+- `name`
+- `yearly_billing`
 
 ## Cookbook
 
@@ -685,6 +724,10 @@ const schema = makeExecutableSchema({
   resolvers,
 })
 ```
+
+## CLI Usage
+
+Available soon!
 
 ## Database compatibility
 
