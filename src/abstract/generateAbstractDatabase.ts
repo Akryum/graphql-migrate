@@ -93,10 +93,12 @@ class AbstractDatabaseBuilder {
 
   public build (): AbstractDatabase {
     for (const key in this.typeMap) {
-      const type = this.typeMap[key]
-      // Tables
-      if (isObjectType(type) && !type.name.startsWith('__') && !ROOT_TYPES.includes(type.name)) {
-        this.buildTable(type)
+      if (this.typeMap[key]) {
+        const type = this.typeMap[key]
+        // Tables
+        if (isObjectType(type) && !type.name.startsWith('__') && !ROOT_TYPES.includes(type.name)) {
+          this.buildTable(type)
+        }
       }
     }
     this.database.tables.push(...this.tableQueue)
@@ -132,8 +134,10 @@ class AbstractDatabaseBuilder {
 
     const fields = type.getFields()
     for (const key in fields) {
-      const field = fields[key]
-      this.buildColumn(table, field)
+      if (fields[key]) {
+        const field = fields[key]
+        this.buildColumn(table, field)
+      }
     }
 
     this.currentTable = null
@@ -214,6 +218,7 @@ class AbstractDatabaseBuilder {
       }
       const descriptor = this.getFieldDescriptor(foreignField)
       if (!descriptor) {
+        // tslint:disable-next-line max-line-length
         console.warn(`Couldn't create foreign field ${foreignKey} on type ${fieldType.name} on field ${field.name}. See above messages.`)
         return null
       }
@@ -264,7 +269,9 @@ class AbstractDatabaseBuilder {
         if (!joinTable) {
           joinTable = {
             name: tableName,
-            comment: escapeComment(annotations.tableComment) || `[Auto] Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
+            comment: escapeComment(annotations.tableComment) ||
+              // tslint:disable-next-line max-line-length
+              `[Auto] Join table between ${this.currentType}.${field.name} and ${foreignType.name}.${foreignField.name}`,
             annotations: {},
             columns: [],
             columnMap: new Map(),
@@ -278,12 +285,13 @@ class AbstractDatabaseBuilder {
         let descriptors = []
         if (onSameType) {
           const key = annotations.manyToMany || 'id'
-          const foreignField = foreignType.getFields()[key]
-          if (!foreignField) {
+          const sameTypeForeignField = foreignType.getFields()[key]
+          if (!sameTypeForeignField) {
+            // tslint:disable-next-line max-line-length
             console.warn(`Foreign field ${key} on type ${ofType.name} not found on field ${this.currentType}.${field.name}.`)
             return null
           }
-          const descriptor = this.getFieldDescriptor(foreignField, ofType)
+          const descriptor = this.getFieldDescriptor(sameTypeForeignField, ofType)
           if (!descriptor) { return null }
           descriptors = [
             descriptor,
@@ -319,6 +327,7 @@ class AbstractDatabaseBuilder {
       }
     // Unsupported
     } else {
+      // tslint:disable-next-line max-line-length
       console.warn(`Field ${this.currentType}.${field.name} of type ${fieldType ? fieldType.toString() : '*unknown*'} not supported. Consider specifying column type with:
       """
       @db.type: "text"
@@ -328,24 +337,25 @@ class AbstractDatabaseBuilder {
     }
 
     // Index
-    for (const type of INDEX_TYPES) {
-      const annotation = annotations[type.annotation]
+    for (const indexTypeDef of INDEX_TYPES) {
+      const annotation = annotations[indexTypeDef.annotation]
       if (this.currentTable && (annotation ||
-        (type.default && isScalarType(fieldType) && type.default(field.name, fieldType.name) && annotation !== false))
+        (indexTypeDef.default && isScalarType(fieldType) &&
+          indexTypeDef.default(field.name, fieldType.name) && annotation !== false))
       ) {
         let indexName: string | null = null
         let indexType: string | null = null
         if (typeof annotation === 'string') {
           indexName = annotation
-        } else if (type.hasType && typeof annotation === 'object') {
+        } else if (indexTypeDef.hasType && typeof annotation === 'object') {
           indexName = annotation.name
           indexType = annotation.type
         }
         // @ts-ignore
-        const list: any[] = this.currentTable[type.list]
+        const list: any[] = this.currentTable[indexTypeDef.list]
         let index = indexName ? list.find((i) => i.name === indexName) : null
         if (!index) {
-          index = type.hasType ? {
+          index = indexTypeDef.hasType ? {
             name: indexName,
             type: indexType,
             columns: [],
@@ -353,14 +363,14 @@ class AbstractDatabaseBuilder {
             name: indexName,
             columns: [],
           }
-          if (type.max && list.length === type.max) {
+          if (indexTypeDef.max && list.length === indexTypeDef.max) {
             list.splice(0, 1)
           }
           list.push(index)
         }
         index.columns.push(columnName)
         if (!index.name) {
-          index.name = type.defaultName(this.currentTable.name, columnName).toLowerCase().substr(0, 63)
+          index.name = indexTypeDef.defaultName(this.currentTable.name, columnName).toLowerCase().substr(0, 63)
         }
       }
     }
@@ -391,6 +401,7 @@ class AbstractDatabaseBuilder {
           }
           const foreignColumn = foreignTable.columnMap.get(column.foreign.field || '')
           if (!foreignColumn) {
+            // tslint:disable-next-line max-line-length
             console.warn(`Foreign key ${table.name}.${column.name}: Column not found for field ${column.foreign.field} in table ${foreignTable.name}.`)
             continue
           }
