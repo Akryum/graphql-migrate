@@ -114,6 +114,8 @@ class Writer {
         }
       }
     })
+
+    await this.knex.destroy()
   }
 
   private getTableName (name: string) {
