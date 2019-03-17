@@ -11,6 +11,8 @@ Instantly create or update a SQL database from a GraphQL API schema.
 
 <br>
 
+<h3 align="center"><a href="https://graphql-migrate.netlify.com/">Documentation</a></h3>
+
 <p align="center">
   <a href="https://www.patreon.com/akryum" target="_blank">
     <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patreon">
