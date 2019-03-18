@@ -404,7 +404,7 @@ class AbstractDatabaseBuilder {
       args: args || [],
       nullable: !notNull,
       foreign,
-      defaultValue: annotations.default || null,
+      defaultValue: annotations.default != null ? annotations.default : null,
     }
   }
 
