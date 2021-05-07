@@ -9395,9 +9395,9 @@ symbol-tree@^3.2.2:
   integrity sha1-rifbOPZgp64uHDt9G8KQgZuFGeY=
 
 systeminformation@^4.0.15:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-4.1.1.tgz#1d6afad3c3015bb747bf400b4415f268da4972d7"
-  integrity sha512-sRQYRRTOkwpXQA8grIBPSZEzJvxdsitdmrp0mer9MFRlry5AJC6DbAE0EcsK54k5jLTBaauvzCFwM+y7c5fMmg==
+  version "4.34.23"
+  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-4.34.23.tgz#54c54ced5adc49c27cda953b73c0819ed56edd45"
+  integrity sha512-33+lQwlLxXoxy0o9WLOgw8OjbXeS3Jv+pSl+nxKc2AOClBI28HsdRPpH0u9Xa9OVjHLT9vonnOMw1ug7YXI0dA==
 
 table@^4.0.3:
   version "4.0.3"
